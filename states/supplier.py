@@ -7,6 +7,7 @@ class SupplierRegistration(StatesGroup):
     age = State()
     phone_number = State()
     instagram_id = State()
+    portfolio_photos = State()
     
     # مشخصات ظاهری
     height = State()
@@ -31,6 +32,13 @@ class SupplierRegistration(StatesGroup):
     
     # تأیید نهایی
     confirm = State()
+    
+    # States for editing during registration
+    editing_field = State()
+    entering_new_value = State()
+    managing_photos = State()
+    adding_photos = State()
+    removing_photos = State()
 
 class SupplierRegistrationEdit(StatesGroup):
     choosing_field = State()
@@ -45,5 +53,10 @@ class SupplierEditProfile(StatesGroup):
 
 class SupplierSettings(StatesGroup):
     menu = State()
+
+class PhotoEditState(StatesGroup):
+    choosing_action = State()
+    adding_photos = State()
+    removing_photos = State()
 
 

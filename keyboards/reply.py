@@ -59,12 +59,17 @@ def get_skip_keyboard():
 
 def get_confirm_keyboard():
     """کیبورد تأیید نهایی"""
-    kb = ReplyKeyboardBuilder()
-    kb.button(text="✅ تأیید نهایی")
-    kb.button(text="🔄 ویرایش اطلاعات")
-    kb.button(text="❌ انصراف")
-    kb.adjust(1, 2)
-    return kb.as_markup(resize_keyboard=True)
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [
+                KeyboardButton(text="✅ تأیید نهایی"),
+                KeyboardButton(text="❌ انصراف")
+            ],
+            [KeyboardButton(text="🔄 ویرایش اطلاعات")]
+        ],
+        resize_keyboard=True
+    )
+    return keyboard
 
 def get_supplier_menu_keyboard():
     """منوی تأمین‌کننده"""
@@ -85,12 +90,13 @@ def get_edit_profile_keyboard():
         "قد", "وزن", "رنگ مو", "رنگ چشم", "رنگ پوست",
         "سایز بالاتنه", "سایز پایین‌تنه", "ویژگی‌های خاص",
         "محدوده قیمت", "شهر", "محدوده فعالیت",
-        "انواع همکاری", "سبک‌های کاری", "سابقه برند", "توضیحات"
+        "انواع همکاری", "سبک‌های کاری", "سابقه برند", "توضیحات",
+        "مدیریت تصاویر"
     ]
     for field in fields:
         kb.button(text=field)
     kb.button(text="↩️ بازگشت به منو")
-    kb.adjust(2, 2, 2, 2, 2, 2, 2, 2, 2, 1)
+    kb.adjust(2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1)
     return kb.as_markup(resize_keyboard=True)
 
 def get_settings_keyboard(is_active: bool):

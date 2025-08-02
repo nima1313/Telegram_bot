@@ -1,18 +1,34 @@
 import re
 import logging
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
+from aiogram import Router, F, types
+from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, FSInputFile, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from datetime import datetime
 import json
 
 from database.models import User, Supplier, UserRole, Request, RequestStatus
-from states.supplier import SupplierRegistration, SupplierMenu, SupplierEditProfile, SupplierSettings
+from states.supplier import (
+    SupplierRegistration, SupplierMenu, SupplierEditProfile, 
+    SupplierSettings, PhotoEditState
+)
 from keyboards.reply import *
 from keyboards.inline import get_request_action_keyboard
 from utils.validators import validate_phone_number, validate_age, validate_height_weight
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
+
+def get_finish_upload_keyboard():
+    """کیبورد برای اتمام آپلود تصاویر"""
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="✅ اتمام ارسال تصاویر")],
+            [KeyboardButton(text="↩️ بازگشت")]
+        ],
+        resize_keyboard=True
+    )
+    return keyboard
 from sqlalchemy.orm import selectinload
 
 router = Router()
@@ -38,6 +54,7 @@ EDITABLE_FIELDS = {
     "سبک‌های کاری": "work_styles",
     "سابقه برند": "brand_experience",
     "توضیحات": "additional_notes",
+    "مدیریت تصاویر": "portfolio_photos",
 }
 # ========== فرآیند ثبت‌نام تأمین‌کننده ==========
 
@@ -148,13 +165,56 @@ async def process_instagram_id(message: Message, state: FSMContext):
     instagram_id = None if message.text == "⏭ رد کردن" else message.text.replace("@", "")
     await state.update_data(instagram_id=instagram_id)
     
+    # Ask for portfolio photos
     await message.answer(
-        "حالا مشخصات ظاهری خود را وارد کنید.\n\n"
-        "🔸 قد خود را به سانتی‌متر وارد کنید:\n"
-        "مثال: 175",
-        reply_markup=get_back_keyboard()
+        "🖼 لطفاً نمونه کارهای خود را ارسال کنید.\n"
+        "(لطفا آن ها را تک تک ارسال کنید)\n"
+        "حداقل یک تصویر ارسال کنید.\n"
+        "پس از اتمام ارسال تصاویر، روی دکمه 'اتمام ارسال تصاویر' کلیک کنید.",
+        reply_markup=get_finish_upload_keyboard()
     )
-    await state.set_state(SupplierRegistration.height)
+    await state.update_data(portfolio_photos=[])
+    await state.set_state(SupplierRegistration.portfolio_photos)
+
+@router.message(SupplierRegistration.portfolio_photos)
+async def process_portfolio_photos(message: Message, state: FSMContext):
+    """پردازش تصاویر نمونه کار"""
+    if message.text == "↩️ بازگشت":
+        await message.answer(
+            "🔸 آیدی اینستاگرام خود را وارد کنید:",
+            reply_markup=get_skip_keyboard()
+        )
+        await state.set_state(SupplierRegistration.instagram_id)
+        return
+    
+    if message.text == "✅ اتمام ارسال تصاویر":
+        data = await state.get_data()
+        if not data.get('portfolio_photos'):
+            await message.answer("❌ لطفاً حداقل یک تصویر ارسال کنید.")
+            return
+        
+        await message.answer(
+            "حالا مشخصات ظاهری خود را وارد کنید.\n\n"
+            "🔸 قد خود را به سانتی‌متر وارد کنید:\n"
+            "مثال: 175",
+            reply_markup=get_back_keyboard()
+        )
+        await state.set_state(SupplierRegistration.height)
+        return
+    
+    # اگر پیام حاوی عکس باشد
+    if message.photo:
+        data = await state.get_data()
+        portfolio_photos = data.get('portfolio_photos', [])
+        # ذخیره file_id عکس
+        portfolio_photos.append(message.photo[-1].file_id)
+        await state.update_data(portfolio_photos=portfolio_photos)
+        await message.answer(
+            f"✅ تصویر {len(portfolio_photos)} اضافه شد.\n"
+            "می‌توانید تصویر دیگری ارسال کنید یا روی دکمه 'اتمام ارسال تصاویر' کلیک کنید."
+        )
+    else:
+        await message.answer("❌ لطفاً یک تصویر ارسال کنید.")
 
 @router.message(SupplierRegistration.height)
 async def process_height(message: Message, state: FSMContext):
@@ -473,9 +533,40 @@ async def process_brand_experience(message: Message, state: FSMContext):
     )
     await state.set_state(SupplierRegistration.additional_notes)
 
+async def show_confirmation_summary(message: types.Message, state: FSMContext):
+    """Helper function to show the confirmation summary."""
+    data = await state.get_data()
+    summary = create_supplier_summary(data)
+    
+    portfolio_photos = data.get('portfolio_photos', [])
+    
+    if portfolio_photos:
+        media_group = [types.InputMediaPhoto(media=photo_id) for photo_id in portfolio_photos]
+        
+        # Add caption to the first media element
+        if media_group:
+            media_group[0].caption = f"لطفاً اطلاعات خود را بررسی کنید:\n\n{summary}"
+
+        try:
+            await message.answer_media_group(media_group)
+        except Exception as e:
+            logging.error(f"Error sending media group for confirmation: {e}")
+            # Fallback to sending text and photos separately
+            await message.answer(f"لطفاً اطلاعات خود را بررسی کنید:\n\n{summary}")
+            for photo_id in portfolio_photos:
+                await message.answer_photo(photo_id)
+    else:
+        await message.answer(f"لطفاً اطلاعات خود را بررسی کنید:\n\n{summary}")
+
+    await message.answer(
+        "آیا اطلاعات فوق را تأیید می‌کنید؟",
+        reply_markup=get_confirm_keyboard()
+    )
+    await state.set_state(SupplierRegistration.confirm)
+
 @router.message(SupplierRegistration.additional_notes)
 async def process_additional_notes(message: Message, state: FSMContext):
-    """پردازش توضیحات اضافی"""
+    """پردازش توضیحات اضافی و نمایش خلاصه"""
     if message.text == "↩️ بازگشت":
         await state.set_state(SupplierRegistration.brand_experience)
         await message.answer(
@@ -487,15 +578,7 @@ async def process_additional_notes(message: Message, state: FSMContext):
     additional_notes = None if message.text == "⏭ رد کردن" else message.text
     await state.update_data(additional_notes=additional_notes)
     
-    # نمایش خلاصه اطلاعات
-    data = await state.get_data()
-    summary = create_supplier_summary(data)
-    
-    await message.answer(
-        f"لطفاً اطلاعات خود را بررسی کنید:\n\n{summary}",
-        reply_markup=get_confirm_keyboard()
-    )
-    await state.set_state(SupplierRegistration.confirm)
+    await show_confirmation_summary(message, state)
 
 @router.message(SupplierRegistration.confirm)
 async def process_confirmation(message: Message, state: FSMContext, session: AsyncSession):
@@ -509,9 +592,10 @@ async def process_confirmation(message: Message, state: FSMContext, session: Asy
         return
     
     if message.text == "🔄 ویرایش اطلاعات":
+        await state.set_state(SupplierRegistration.editing_field)
         await message.answer(
-            "از کدام مرحله می‌خواهید ویرایش را شروع کنید؟\n"
-            "برای شروع از ابتدا، /start را بزنید."
+            "کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟",
+            reply_markup=get_edit_profile_keyboard()
         )
         return
     
@@ -519,38 +603,52 @@ async def process_confirmation(message: Message, state: FSMContext, session: Asy
         try:
             data = await state.get_data()
             
-            # ایجاد یا به‌روزرسانی کاربر
             user = await get_or_create_user(session, message.from_user, UserRole.SUPPLIER)
             user.role = UserRole.SUPPLIER
             
-            # ایجاد پروفایل تأمین‌کننده
-            supplier = Supplier(
-                user_id=user.id,
-                full_name=data['full_name'],
-                gender=data['gender'],
-                age=data['age'],
-                phone_number=data['phone_number'],
-                instagram_id=data.get('instagram_id'),
-                height=data['height'],
-                weight=data['weight'],
-                hair_color=data['hair_color'],
-                eye_color=data['eye_color'],
-                skin_color=data['skin_color'],
-                top_size=data['top_size'],
-                bottom_size=data['bottom_size'],
-                special_features=data.get('special_features'),
-                price_range_min=extract_price_min(data['price_range']),
-                price_range_max=extract_price_max(data['price_range']),
-                price_unit=extract_price_unit(data['price_range']),
-                city=data['city'],
-                area=data['area'],
-                cooperation_types=data['cooperation_types'],
-                work_styles=data['work_styles'],
-                brand_experience=data.get('brand_experience'),
-                additional_notes=data.get('additional_notes')
+            # Check if a supplier profile already exists
+            supplier = await session.scalar(
+                select(Supplier).where(Supplier.user_id == user.id)
             )
             
-            session.add(supplier)
+            if supplier:
+                # Update existing profile
+                for key, value in data.items():
+                    if hasattr(supplier, key):
+                        setattr(supplier, key, value)
+                supplier.price_range_min = extract_price_min(data['price_range'])
+                supplier.price_range_max = extract_price_max(data['price_range'])
+                supplier.price_unit = extract_price_unit(data['price_range'])
+            else:
+                # Create new profile
+                supplier = Supplier(
+                    user_id=user.id,
+                    full_name=data['full_name'],
+                    gender=data['gender'],
+                    age=data['age'],
+                    phone_number=data['phone_number'],
+                    instagram_id=data.get('instagram_id'),
+                    portfolio_photos=data.get('portfolio_photos', []),
+                    height=data['height'],
+                    weight=data['weight'],
+                    hair_color=data['hair_color'],
+                    eye_color=data['eye_color'],
+                    skin_color=data['skin_color'],
+                    top_size=data['top_size'],
+                    bottom_size=data['bottom_size'],
+                    special_features=data.get('special_features'),
+                    price_range_min=extract_price_min(data['price_range']),
+                    price_range_max=extract_price_max(data['price_range']),
+                    price_unit=extract_price_unit(data['price_range']),
+                    city=data['city'],
+                    area=data['area'],
+                    cooperation_types=data['cooperation_types'],
+                    work_styles=data['work_styles'],
+                    brand_experience=data.get('brand_experience'),
+                    additional_notes=data.get('additional_notes')
+                )
+                session.add(supplier)
+
             await session.commit()
             
             await message.answer(
@@ -558,16 +656,147 @@ async def process_confirmation(message: Message, state: FSMContext, session: Asy
                 "اکنون می‌توانید از امکانات ربات استفاده کنید.",
                 reply_markup=get_supplier_menu_keyboard()
             )
-            await show_supplier_menu(message, state, session)
+            await state.set_state(SupplierMenu.main_menu)
             
         except Exception as e:
-            logging.exception("Error during supplier registration:")
+            logging.exception("Error during supplier registration confirmation:")
             await message.answer(
                 "❌ خطایی در ثبت اطلاعات رخ داد. لطفاً مجدداً تلاش کنید.",
                 reply_markup=ReplyKeyboardRemove()
             )
             await state.clear()
 
+# ========== Handlers for Editing During Registration ==========
+
+@router.message(SupplierRegistration.editing_field)
+async def registration_choose_field_to_edit(message: Message, state: FSMContext):
+    """Choose which field to edit during registration confirmation."""
+    if message.text == "↩️ بازگشت به منو":
+        await show_confirmation_summary(message, state)
+        return
+
+    if message.text not in EDITABLE_FIELDS:
+        await message.answer("لطفاً یک گزینه معتبر از کیبورد انتخاب کنید.")
+        return
+
+    field_to_edit = EDITABLE_FIELDS[message.text]
+    await state.update_data(field_to_edit=field_to_edit, field_to_edit_fa=message.text)
+    
+    if field_to_edit == "portfolio_photos":
+        await state.set_state(SupplierRegistration.managing_photos)
+        data = await state.get_data()
+        photos = data.get('portfolio_photos', [])
+        
+        if photos:
+            await message.answer("تصاویر فعلی شما:")
+            media = [InputMediaPhoto(media=photo_id) for photo_id in photos]
+            await message.answer_media_group(media=media)
+        
+        await message.answer(
+            f"شما در حال حاضر {len(photos)} تصویر دارید. چه کاری می‌خواهید انجام دهید?",
+            reply_markup=get_photo_management_keyboard()
+        )
+        return
+
+    await state.set_state(SupplierRegistration.entering_new_value)
+    await message.answer(f"لطفاً مقدار جدید برای '{message.text}' را وارد کنید:", reply_markup=get_back_keyboard())
+
+@router.message(SupplierRegistration.entering_new_value)
+async def registration_enter_new_value(message: Message, state: FSMContext):
+    """Enter the new value for the selected field during registration."""
+    if message.text == "↩️ بازگشت":
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("از کدام بخش می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        return
+
+    data = await state.get_data()
+    field_to_edit = data.get("field_to_edit")
+    new_value = message.text
+
+    # --- Validation ---
+    if field_to_edit == 'age':
+        age = validate_age(new_value)
+        if not age:
+            await message.answer("سن نامعتبر است. لطفاً عدد بین ۱۵ تا ۸۰ وارد کنید.")
+            return
+        new_value = age
+    elif field_to_edit == 'phone_number':
+        phone = validate_phone_number(new_value)
+        if not phone:
+            await message.answer("شماره تماس نامعتبر است.")
+            return
+        new_value = phone
+    
+    await state.update_data({field_to_edit: new_value})
+    
+    await message.answer(f"✅ '{data.get('field_to_edit_fa')}' با موفقیت ویرایش شد.")
+    await show_confirmation_summary(message, state)
+
+# --- Photo Management During Registration ---
+
+@router.message(SupplierRegistration.managing_photos)
+async def registration_manage_photos(message: Message, state: FSMContext):
+    """Handle photo management choices during registration."""
+    if message.text == "↩️ بازگشت":
+        await show_confirmation_summary(message, state)
+        return
+
+    if message.text == "➕ افزودن تصویر جدید":
+        await state.set_state(SupplierRegistration.adding_photos)
+        await message.answer(
+            "🖼 تصاویر جدید خود را ارسال کنید. پس از اتمام روی دکمه 'اتمام ارسال تصاویر' کلیک کنید.",
+            reply_markup=get_finish_upload_keyboard()
+        )
+    elif message.text == "❌ حذف تصاویر":
+        data = await state.get_data()
+        photos = data.get('portfolio_photos', [])
+        if not photos:
+            await message.answer("شما هیچ تصویری برای حذف ندارید!")
+            return
+        
+        await state.set_state(SupplierRegistration.removing_photos)
+        media = [InputMediaPhoto(media=photo_id, caption=f"تصویر شماره {i+1}") for i, photo_id in enumerate(photos)]
+        await message.answer_media_group(media)
+        await message.answer("کدام تصویر را می‌خواهید حذف کنید؟", reply_markup=create_photo_list_keyboard(photos))
+
+@router.message(SupplierRegistration.adding_photos, F.photo)
+async def registration_add_photo(message: Message, state: FSMContext):
+    """Add a photo during registration editing."""
+    data = await state.get_data()
+    photos = data.get('portfolio_photos', [])
+    photos.append(message.photo[-1].file_id)
+    await state.update_data(portfolio_photos=photos)
+    await message.answer(f"✅ تصویر {len(photos)} اضافه شد.")
+
+@router.message(SupplierRegistration.adding_photos, F.text == "✅ اتمام ارسال تصاویر")
+async def registration_finish_adding_photos(message: Message, state: FSMContext):
+    """Finish adding photos and return to summary."""
+    await message.answer("✅ تصاویر شما به‌روز شد.")
+    await show_confirmation_summary(message, state)
+
+@router.message(SupplierRegistration.removing_photos)
+async def registration_remove_photo(message: Message, state: FSMContext):
+    """Remove a photo during registration editing."""
+    data = await state.get_data()
+    photos = data.get('portfolio_photos', [])
+
+    if message.text == "✅ اتمام" or message.text == "↩️ بازگشت":
+        await message.answer("✅ مدیریت تصاویر تمام شد.")
+        await show_confirmation_summary(message, state)
+        return
+
+    if message.text.startswith("❌ حذف تصویر "):
+        try:
+            index_to_remove = int(message.text.split(" ")[-1]) - 1
+            if 0 <= index_to_remove < len(photos):
+                photos.pop(index_to_remove)
+                await state.update_data(portfolio_photos=photos)
+                await message.answer(f"تصویر شماره {index_to_remove + 1} حذف شد.", reply_markup=create_photo_list_keyboard(photos))
+            else:
+                await message.answer("شماره تصویر نامعتبر است.")
+        except (ValueError, IndexError):
+            await message.answer("دستور نامعتبر است.")
+            
 # ========== منوی تأمین‌کننده ==========
 
 async def show_supplier_menu(message: Message, state: FSMContext, session: AsyncSession):
@@ -589,8 +818,26 @@ async def view_profile(message: Message, state: FSMContext, session: AsyncSessio
     
     supplier = user.supplier_profile
     profile_text = create_supplier_profile_text(supplier)
-    
-    await message.answer(profile_text)
+
+    if supplier.portfolio_photos:
+        try:            
+            # Create media group with all photos except the last one without captions
+            media = [InputMediaPhoto(media=photo_id) for photo_id in supplier.portfolio_photos[:-1]]
+            # Add the last photo with the caption
+            media.append(InputMediaPhoto(media=supplier.portfolio_photos[-1], caption=profile_text))
+            
+            # Send all photos in a media group with the text as caption on last photo
+            await message.answer_media_group(media=media)
+        except Exception as e:
+            logging.error(f"Error sending profile photos: {e}")
+            # If media group fails, try sending photos individually
+            for photo_id in supplier.portfolio_photos:
+                try:
+                    await message.answer_photo(photo_id)
+                except Exception as photo_e:
+                    logging.error(f"Error sending individual photo {photo_id}: {photo_e}")
+    else:
+        await message.answer(profile_text)
 
 @router.message(F.text == "✏️ ویرایش پروفایل", SupplierMenu.main_menu)
 async def edit_profile_start(message: Message, state: FSMContext):
@@ -602,7 +849,7 @@ async def edit_profile_start(message: Message, state: FSMContext):
     )
 
 @router.message(SupplierEditProfile.choosing_field)
-async def edit_profile_choose_field(message: Message, state: FSMContext):
+async def edit_profile_choose_field(message: Message, state: FSMContext, session: AsyncSession):
     """انتخاب فیلد برای ویرایش"""
     if message.text == "↩️ بازگشت به منو":
         await state.set_state(SupplierMenu.main_menu)
@@ -613,10 +860,62 @@ async def edit_profile_choose_field(message: Message, state: FSMContext):
         await message.answer("لطفاً یک گزینه معتبر از کیبورد انتخاب کنید.")
         return
 
+    # Special handling for photo management
+    if message.text == "مدیریت تصاویر":
+        await state.set_state(PhotoEditState.choosing_action)
+        user = await get_user_by_telegram_id(session, str(message.from_user.id))
+        if not user or not user.supplier_profile:
+            await message.answer("خطا: پروفایل شما یافت نشد!")
+            await state.set_state(SupplierMenu.main_menu)
+            await message.answer("به منوی تأمین‌کننده بازگشتید.", reply_markup=get_supplier_menu_keyboard())
+            return
+
+        photos = user.supplier_profile.portfolio_photos or []
+        await state.update_data(current_photos=photos)
+
+        # Show current photos
+        if photos:
+            await message.answer("تصاویر فعلی شما:")
+            try:
+                media = [InputMediaPhoto(media=photo_id) for photo_id in photos]
+                await message.answer_media_group(media=media)
+            except Exception as e:
+                logging.error(f"Error sending media group in photo management: {e}")
+                await message.answer("خطا در نمایش تصاویر.")
+        
+        await message.answer(
+            f"شما در حال حاضر {len(photos)} تصویر دارید.\n"
+            "چه کاری می‌خواهید انجام دهید؟",
+            reply_markup=get_photo_management_keyboard()
+        )
+        return
+
+    # For other fields
     field_to_edit = EDITABLE_FIELDS[message.text]
     await state.update_data(field_to_edit=field_to_edit, field_to_edit_fa=message.text)
+    
     await state.set_state(SupplierEditProfile.entering_value)
     await message.answer(f"لطفاً مقدار جدید برای '{message.text}' را وارد کنید:", reply_markup=get_back_keyboard())
+
+def get_photo_management_keyboard():
+    """کیبورد برای مدیریت تصاویر"""
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="➕ افزودن تصویر جدید")],
+            [KeyboardButton(text="❌ حذف تصاویر")],
+            [KeyboardButton(text="↩️ بازگشت")]
+        ],
+        resize_keyboard=True
+    )
+
+def create_photo_list_keyboard(photos):
+    """ایجاد کیبورد برای لیست عکس‌ها"""
+    keyboard = []
+    for i, _ in enumerate(photos, 1):
+        keyboard.append([KeyboardButton(text=f"❌ حذف تصویر {i}")])
+    keyboard.append([KeyboardButton(text="✅ اتمام")])
+    keyboard.append([KeyboardButton(text="↩️ بازگشت")])
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 @router.message(SupplierEditProfile.entering_value)
 async def edit_profile_enter_value(message: Message, state: FSMContext, session: AsyncSession):
@@ -629,10 +928,9 @@ async def edit_profile_enter_value(message: Message, state: FSMContext, session:
     data = await state.get_data()
     field_to_edit = data.get("field_to_edit")
     field_to_edit_fa = data.get("field_to_edit_fa")
-    new_value = message.text
 
-    # (Optional) Add validation for each field here
-    # For example:
+    new_value = message.text
+    # Regular field validation
     if field_to_edit == 'age':
         age = validate_age(new_value)
         if not age:
@@ -807,6 +1105,141 @@ async def reject_request(callback: CallbackQuery, session: AsyncSession):
     )
     await callback.answer("درخواست رد شد!")
 
+# ========== Photo Management Handlers ==========
+
+@router.message(PhotoEditState.choosing_action)
+async def photo_edit_action(message: Message, state: FSMContext, session: AsyncSession):
+    """مدیریت عکس‌های پروفایل"""
+    if message.text == "↩️ بازگشت":
+        await state.set_state(SupplierEditProfile.choosing_field)
+        await message.answer("از کدام بخش می‌خواهید ویرایش کنید?", reply_markup=get_edit_profile_keyboard())
+        return
+
+    if message.text == "➕ افزودن تصویر جدید":
+        await state.set_state(PhotoEditState.adding_photos)
+        await message.answer(
+            "🖼 تصاویر جدید خود را ارسال کنید.\n"
+            "پس از اتمام روی دکمه 'اتمام ارسال تصاویر' کلیک کنید.",
+            reply_markup=get_finish_upload_keyboard()
+        )
+        return
+
+    if message.text == "❌ حذف تصاویر":
+        data = await state.get_data()
+        photos = data.get('current_photos', [])
+        if not photos:
+            await message.answer("شما هیچ تصویری ندارید!")
+            return
+
+        # نمایش عکس‌های فعلی با شماره
+        media = []
+        for i, photo_id in enumerate(photos, 1):
+            media.append(InputMediaPhoto(
+                media=photo_id,
+                caption=f"تصویر شماره {i}"
+            ))
+        await message.answer_media_group(media=media)
+
+        await state.set_state(PhotoEditState.removing_photos)
+        await message.answer(
+            "برای حذف هر تصویر، شماره آن را انتخاب کنید:",
+            reply_markup=create_photo_list_keyboard(photos)
+        )
+        return
+
+@router.message(PhotoEditState.adding_photos)
+async def add_photos(message: Message, state: FSMContext, session: AsyncSession):
+    """افزودن عکس جدید"""
+    if message.text == "↩️ بازگشت":
+        await state.set_state(PhotoEditState.choosing_action)
+        await message.answer(
+            "چه کاری می‌خواهید انجام دهید؟",
+            reply_markup=get_photo_management_keyboard()
+        )
+        return
+
+    if message.text == "✅ اتمام ارسال تصاویر":
+        data = await state.get_data()
+        current_photos = data.get('current_photos', [])
+        
+        user = await get_user_by_telegram_id(session, str(message.from_user.id))
+        if user and user.supplier_profile:
+            user.supplier_profile.portfolio_photos = current_photos
+            await session.commit()
+            
+            await message.answer("✅ تصاویر با موفقیت به‌روزرسانی شدند.")
+            await state.set_state(SupplierEditProfile.choosing_field)
+            await message.answer(
+                "می‌توانید بخش دیگری را ویرایش کنید یا بازگردید.",
+                reply_markup=get_edit_profile_keyboard()
+            )
+        return
+
+    if message.photo:
+        data = await state.get_data()
+        current_photos = data.get('current_photos', [])
+        current_photos.append(message.photo[-1].file_id)
+        await state.update_data(current_photos=current_photos)
+        await message.answer(
+            f"✅ تصویر {len(current_photos)} اضافه شد.\n"
+            "می‌توانید تصویر دیگری ارسال کنید یا روی دکمه 'اتمام ارسال تصاویر' کلیک کنید."
+        )
+    else:
+        await message.answer("❌ لطفاً یک تصویر ارسال کنید.")
+
+@router.message(PhotoEditState.removing_photos)
+async def remove_photos(message: Message, state: FSMContext, session: AsyncSession):
+    """حذف عکس"""
+    if message.text == "↩️ بازگشت":
+        await state.set_state(PhotoEditState.choosing_action)
+        await message.answer(
+            "چه کاری می‌خواهید انجام دهید؟",
+            reply_markup=get_photo_management_keyboard()
+        )
+        return
+
+    if message.text == "✅ اتمام":
+        data = await state.get_data()
+        current_photos = data.get('current_photos', [])
+        
+        user = await get_user_by_telegram_id(session, str(message.from_user.id))
+        if user and user.supplier_profile:
+            user.supplier_profile.portfolio_photos = current_photos
+            await session.commit()
+            
+            await message.answer("✅ تصاویر با موفقیت به‌روزرسانی شدند.")
+            await state.set_state(SupplierEditProfile.choosing_field)
+            await message.answer(
+                "می‌توانید بخش دیگری را ویرایش کنید یا بازگردید.",
+                reply_markup=get_edit_profile_keyboard()
+            )
+        return
+
+    if message.text.startswith("❌ حذف تصویر "):
+        try:
+            index = int(message.text.replace("❌ حذف تصویر ", "")) - 1
+            data = await state.get_data()
+            current_photos = data.get('current_photos', [])
+            
+            if 0 <= index < len(current_photos):
+                deleted_photo = current_photos.pop(index)
+                await state.update_data(current_photos=current_photos)
+                
+                # Show remaining photos
+                if current_photos:
+                    media = [InputMediaPhoto(media=photo_id) for photo_id in current_photos]
+                    await message.answer_media_group(media=media)
+                
+                await message.answer(
+                    f"✅ تصویر {index + 1} حذف شد.\n"
+                    f"تعداد تصاویر باقی‌مانده: {len(current_photos)}",
+                    reply_markup=create_photo_list_keyboard(current_photos)
+                )
+            else:
+                await message.answer("❌ شماره تصویر نامعتبر است.")
+        except ValueError:
+            await message.answer("❌ لطفاً یک گزینه معتبر انتخاب کنید.")
+
 # ========== Helper Functions ==========
 
 from utils.users import get_or_create_user
@@ -843,6 +1276,7 @@ def create_supplier_summary(data: dict) -> str:
 سن: {data['age']} سال
 تلفن: {data['phone_number']}
 اینستاگرام: {data.get('instagram_id', '-')}
+نمونه کار: {len(data.get('portfolio_photos', []))} تصویر
 
 📏 مشخصات ظاهری:
 قد: {data['height']} سانتی‌متر
