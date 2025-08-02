@@ -20,7 +20,9 @@ class SupplierRegistration(StatesGroup):
     special_features = State()
     
     # اطلاعات همکاری
+    price_types = State()
     price_range = State()
+    style_price = State()  # For category-based pricing using selected work styles
     city = State()
     area = State()
     cooperation_types = State()

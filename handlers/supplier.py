@@ -9,6 +9,19 @@ from sqlalchemy import select, update
 from datetime import datetime
 import json
 
+def format_pricing_data(pricing_data: dict) -> str:
+    if not pricing_data:
+        return "اطلاعات قیمت‌گذاری موجود نیست"
+    
+    formatted_lines = []
+    for style, prices in pricing_data.items():
+        style_text = f"سبک {style}:"
+        for price_type, amount in prices.items():
+            style_text += f"\n  {price_type}: {amount} تومان"
+        formatted_lines.append(style_text)
+    
+    return "\n".join(formatted_lines)
+
 from database.models import User, Supplier, UserRole, Request, RequestStatus
 from states.supplier import (
     SupplierRegistration, SupplierMenu, SupplierEditProfile, 
@@ -19,6 +32,22 @@ from keyboards.inline import get_request_action_keyboard
 from utils.validators import validate_phone_number, validate_age, validate_height_weight
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
+# Constants for price types
+PRICE_TYPES = {
+    "✅ ساعتی": "hourly",
+    "✅ روزانه": "daily",
+    "✅ به ازای هر لباس": "per_cloth",
+    "✅ بر اساس دسته‌بندی": "category_based"
+}
+
+# Constants for price types
+PRICE_TYPES = {
+    "✅ ساعتی": "hourly",
+    "✅ روزانه": "daily",
+    "✅ به ازای هر لباس": "per_cloth",
+    "✅ بر اساس دسته‌بندی": "category_based"
+}
+
 def get_finish_upload_keyboard():
     """کیبورد برای اتمام آپلود تصاویر"""
     keyboard = ReplyKeyboardMarkup(
@@ -28,6 +57,34 @@ def get_finish_upload_keyboard():
         ],
         resize_keyboard=True
     )
+    return keyboard
+
+def get_price_types_keyboard():
+    """کیبورد برای انتخاب نوع قیمت‌گذاری"""
+    keyboard = [
+        [KeyboardButton(text="✅ ساعتی")],
+        [KeyboardButton(text="✅ روزانه")],
+        [KeyboardButton(text="✅ به ازای هر لباس")],
+        [KeyboardButton(text="✅ بر اساس دسته‌بندی")],
+        [KeyboardButton(text="✔️ تأیید و ادامه")],
+        [KeyboardButton(text="↩️ بازگشت")]
+    ]
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+
+def validate_price_range(text: str) -> tuple[int, int] | None:
+    """اعتبارسنجی محدوده قیمت (هزار تومان)"""
+    try:
+        # Remove any non-digit characters and split by any separator
+        numbers = re.findall(r'\d+', text)
+        if len(numbers) != 2:
+            return None
+        min_price = int(numbers[0])
+        max_price = int(numbers[1])
+        if min_price <= 0 or max_price <= 0 or min_price > max_price:
+            return None
+        return min_price, max_price
+    except:
+        return None
     return keyboard
 from sqlalchemy.orm import selectinload
 
@@ -339,19 +396,20 @@ async def process_special_features(message: Message, state: FSMContext):
     
     special_features = None if message.text == "⏭ رد کردن" else message.text
     await state.update_data(special_features=special_features)
+    await state.update_data(selected_work_styles=[])
     
     await message.answer(
-        "حالا اطلاعات همکاری خود را وارد کنید.\n\n"
-        "🔸 محدوده قیمت همکاری خود را وارد کنید:\n"
-        "مثال: ساعتی 300 تا 600 هزار تومان\n"
-        "یا: روزی 4 میلیون تومان",
-        reply_markup=get_back_keyboard()
+        "🔸 سبک کاری مورد علاقه خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):",
+        reply_markup=get_work_styles_keyboard()
     )
-    await state.set_state(SupplierRegistration.price_range)
+    await state.set_state(SupplierRegistration.work_styles)
 
-@router.message(SupplierRegistration.price_range)
-async def process_price_range(message: Message, state: FSMContext):
-    """پردازش محدوده قیمت"""
+@router.message(SupplierRegistration.price_types)
+async def process_price_types(message: Message, state: FSMContext):
+    """پردازش انتخاب نوع قیمت‌گذاری"""
+    data = await state.get_data()
+    selected_types = data.get('selected_price_types', [])
+    
     if message.text == "↩️ بازگشت":
         await state.set_state(SupplierRegistration.special_features)
         await message.answer(
@@ -360,13 +418,204 @@ async def process_price_range(message: Message, state: FSMContext):
         )
         return
     
-    await state.update_data(price_range=message.text)
+    if message.text == "✔️ تأیید و ادامه":
+        if not selected_types:
+            await message.answer("لطفاً حداقل یک نوع قیمت‌گذاری را انتخاب کنید.")
+            return
+        
+        await state.update_data(pricing_data={})
+        # Start with the first price type
+        await process_next_price_type(message, state, selected_types[0])
+        return
+    
+    if message.text in PRICE_TYPES:
+        price_type = PRICE_TYPES[message.text]
+        if price_type in selected_types:
+            selected_types.remove(price_type)
+            await message.answer(f"❌ {message.text.replace('✅ ', '')} از لیست حذف شد.")
+        else:
+            selected_types.append(price_type)
+            await message.answer(f"✅ {message.text.replace('✅ ', '')} به لیست اضافه شد.")
+        
+        await state.update_data(selected_price_types=selected_types)
+        
+        # Show current selections
+        if selected_types:
+            current = "انتخاب‌های فعلی:\n" + "\n".join([f"✓ {k.replace('✅ ', '')}" for k, v in PRICE_TYPES.items() if v in selected_types])
+            await message.answer(current)
+
+async def process_next_price_type(message: Message, state: FSMContext, current_type: str):
+    """پردازش قیمت برای نوع بعدی"""
+    price_names = {
+        "hourly": "ساعتی",
+        "daily": "روزانه",
+        "per_cloth": "به ازای هر لباس",
+        "category_based": "دسته‌بندی"
+    }
+    
+    await state.update_data(current_price_type=current_type)
+    
+    if current_type == "category_based":
+        # Use already selected work styles
+        data = await state.get_data()
+        selected_styles = data.get('work_styles', [])
+        if not selected_styles:
+            await message.answer("❌ برای قیمت‌گذاری بر اساس دسته‌بندی، ابتدا باید سبک‌های کاری را انتخاب کرده باشید.")
+            return
+            
+        await state.update_data(current_style=selected_styles[0])
+        # Start getting prices for the first selected style
+        await process_next_style_price(message, state, selected_styles[0])
+    else:
+        await message.answer(
+            f"🔸 محدوده قیمت {price_names[current_type]} را وارد کنید (به هزار تومان):\n"
+            "مثال: 100 تا 300\n"
+            "(یعنی از 100 هزار تومان تا 300 هزار تومان)",
+            reply_markup=get_back_keyboard()
+        )
+        await state.set_state(SupplierRegistration.price_range)
+
+@router.message(SupplierRegistration.price_range)
+async def process_price_range(message: Message, state: FSMContext):
+    """پردازش محدوده قیمت"""
+    if message.text == "↩️ بازگشت":
+        await state.set_state(SupplierRegistration.price_types)
+        await message.answer(
+            "🔸 نوع قیمت‌گذاری را انتخاب کنید:",
+            reply_markup=get_price_types_keyboard()
+        )
+        return
+    
+    price_range = validate_price_range(message.text)
+    if not price_range:
+        await message.answer(
+            "لطفاً محدوده قیمت را به صورت صحیح وارد کنید:\n"
+            "مثال: 100 تا 300"
+        )
+        return
+    
+    data = await state.get_data()
+    current_type = data.get('current_price_type')
+    pricing_data = data.get('pricing_data', {})
+    selected_types = data.get('selected_price_types', [])
+    
+    # Store the price range for current type
+    pricing_data[current_type] = {"min": price_range[0], "max": price_range[1]}
+    await state.update_data(pricing_data=pricing_data)
+    
+    # Find next price type to process
+    current_index = selected_types.index(current_type)
+    if current_index + 1 < len(selected_types):
+        next_type = selected_types[current_index + 1]
+        await process_next_price_type(message, state, next_type)
+    else:
+        # All price types processed, move to next step
+        await message.answer(
+            "🔸 شهر محل زندگی خود را وارد کنید:\n"
+            "مثال: تهران",
+            reply_markup=get_back_keyboard()
+        )
+        await state.set_state(SupplierRegistration.city)
+
+async def process_next_style_price(message: Message, state: FSMContext, current_style: str):
+    """پردازش قیمت برای هر سبک"""
+    style_names = {
+        "fashion": "� فشن / کت واک",
+        "advertising": "📢 تبلیغاتی / برندینگ",
+        "religious": "🧕 مذهبی / پوشیده",
+        "children": "👶 کودک",
+        "sports": "🏃 ورزشی",
+        "artistic": "🎨 هنری / خاص",
+        "outdoor": "🌳 عکاسی فضای باز",
+        "studio": "📸 عکاسی استودیویی"
+    }
+    
+    await state.update_data(current_style=current_style)
     await message.answer(
-        "🔸 شهر محل زندگی خود را وارد کنید:\n"
-        "مثال: تهران",
+        f"🔸 محدوده قیمت برای سبک {style_names[current_style]} را وارد کنید (به هزار تومان):\n"
+        "مثال: 100 تا 300\n"
+        "(یعنی از 100 هزار تومان تا 300 هزار تومان)",
         reply_markup=get_back_keyboard()
     )
-    await state.set_state(SupplierRegistration.city)
+    await state.set_state(SupplierRegistration.style_price)
+
+@router.message(SupplierRegistration.style_price)
+async def process_style_price(message: Message, state: FSMContext):
+    """پردازش قیمت هر سبک"""
+    if message.text == "↩️ بازگشت":
+        await state.set_state(SupplierRegistration.price_types)
+        await message.answer(
+            "🔸 نوع قیمت‌گذاری را انتخاب کنید:",
+            reply_markup=get_price_types_keyboard()
+        )
+        return
+    
+    price_range = validate_price_range(message.text)
+    if not price_range:
+        await message.answer(
+            "❌ فرمت قیمت نامعتبر است.\n"
+            "لطفاً به این صورت وارد کنید: 100 تا 300\n"
+            "(یعنی از 100 هزار تومان تا 300 هزار تومان)"
+        )
+        return
+    
+    data = await state.get_data()
+    current_style = data.get('current_style')
+    current_price_type = data.get('current_price_type')
+    work_styles = data.get('work_styles', [])
+    pricing_data = data.get('pricing_data', {})
+    
+    # Initialize pricing structure if needed
+    if current_style not in pricing_data:
+        pricing_data[current_style] = {}
+    
+    # Store the price range for current style and price type
+    pricing_data[current_style][current_price_type] = {
+        "min": price_range[0],
+        "max": price_range[1]
+    }
+    await state.update_data(pricing_data=pricing_data)
+    
+    # Find next style to process
+    current_index = work_styles.index(current_style)
+    if current_index + 1 < len(work_styles):
+        next_style = work_styles[current_index + 1]
+        await process_next_style_price(message, state, next_style)
+    else:
+        # All styles processed for this price type, store in pricing_data
+        pricing_data["category_based"] = {
+            style: {"min": data.get("style_pricing", {}).get(style, {}).get("min", 0),
+                   "max": data.get("style_pricing", {}).get(style, {}).get("max", 0)}
+            for style in work_styles
+        }
+        await state.update_data(pricing_data=pricing_data)
+        
+        # Check if there are more price types to process
+        selected_types = data.get('selected_price_types', [])
+        current_type = data.get('current_price_type')
+        current_type_index = selected_types.index(current_type)
+        
+        if current_type_index + 1 < len(selected_types):
+            # Move to next price type
+            next_type = selected_types[current_type_index + 1]
+            await process_next_price_type(message, state, next_type)
+        else:
+            # All price types and styles processed, move to city input
+            await message.answer(
+                "🔸 شهر محل زندگی خود را وارد کنید:\n"
+                "مثال: تهران",
+                reply_markup=get_back_keyboard()
+            )
+            await state.set_state(SupplierRegistration.city)
+        return
+    
+    price_range = validate_price_range(message.text)
+    if not price_range:
+        await message.answer(
+            "لطفاً محدوده قیمت را به صورت صحیح وارد کنید:\n"
+            "مثال: 100 تا 300"
+        )
+        return
 
 @router.message(SupplierRegistration.city)
 async def process_city(message: Message, state: FSMContext):
@@ -419,12 +668,15 @@ async def process_cooperation_types(message: Message, state: FSMContext):
             return
         
         await state.update_data(cooperation_types=selected_types)
-        await state.update_data(selected_work_styles=[])
+        
+        # Move directly to brand experience after cooperation types
         await message.answer(
-            "🔸 سبک کاری مورد علاقه خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):",
-            reply_markup=get_work_styles_keyboard()
+            "🔸 نام برندهایی که با آن‌ها همکاری داشته‌اید را وارد کنید:\n"
+            "مثال: جین وست، آدیداس\n\n"
+            "اگر سابقه همکاری ندارید، روی 'رد کردن' کلیک کنید.",
+            reply_markup=get_skip_keyboard()
         )
-        await state.set_state(SupplierRegistration.work_styles)
+        await state.set_state(SupplierRegistration.brand_experience)
         return
     
     # مدیریت انتخاب/لغو انتخاب
@@ -471,13 +723,15 @@ async def process_work_styles(message: Message, state: FSMContext):
             return
         
         await state.update_data(work_styles=selected_styles)
+        await state.update_data(selected_price_types=[])
+        
         await message.answer(
-            "🔸 نام برندهایی که با آن‌ها همکاری داشته‌اید را وارد کنید:\n"
-            "مثال: جین وست، آدیداس\n\n"
-            "اگر سابقه همکاری ندارید، روی 'رد کردن' کلیک کنید.",
-            reply_markup=get_skip_keyboard()
+            "حالا اطلاعات قیمت‌گذاری خود را وارد کنید.\n\n"
+            "🔸 نحوه قیمت‌گذاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
+            "برای هر کدام از موارد انتخابی در مرحله بعد محدوده قیمت دریافت خواهد شد.",
+            reply_markup=get_price_types_keyboard()
         )
-        await state.set_state(SupplierRegistration.brand_experience)
+        await state.set_state(SupplierRegistration.price_types)
         return
     
     # مدیریت انتخاب/لغو انتخاب
@@ -1271,29 +1525,30 @@ def create_supplier_summary(data: dict) -> str:
     
     summary = f"""
 👤 اطلاعات پایه:
-نام: {data['full_name']}
-جنسیت: {data['gender']}
-سن: {data['age']} سال
-تلفن: {data['phone_number']}
+نام: {data.get('full_name', '-')}
+جنسیت: {data.get('gender', '-')}
+سن: {data.get('age', '-')} سال
+تلفن: {data.get('phone_number', '-')}
 اینستاگرام: {data.get('instagram_id', '-')}
 نمونه کار: {len(data.get('portfolio_photos', []))} تصویر
 
 📏 مشخصات ظاهری:
-قد: {data['height']} سانتی‌متر
-وزن: {data['weight']} کیلوگرم
-رنگ مو: {data['hair_color']}
-رنگ چشم: {data['eye_color']}
-رنگ پوست: {data['skin_color']}
-سایز بالاتنه: {data['top_size']}
-سایز پایین‌تنه: {data['bottom_size']}
+قد: {data.get('height', '-')} سانتی‌متر
+وزن: {data.get('weight', '-')} کیلوگرم
+رنگ مو: {data.get('hair_color', '-')}
+رنگ چشم: {data.get('eye_color', '-')}
+رنگ پوست: {data.get('skin_color', '-')}
+سایز بالاتنه: {data.get('top_size', '-')}
+سایز پایین‌تنه: {data.get('bottom_size', '-')}
 ویژگی خاص: {data.get('special_features', '-')}
 
 💼 اطلاعات همکاری:
-محدوده قیمت: {data['price_range']}
-شهر: {data['city']}
-محدوده: {data['area']}
-نوع همکاری: {', '.join([coop_types_fa.get(t, t) for t in data['cooperation_types']])}
-سبک کاری: {', '.join([work_styles_fa.get(s, s) for s in data['work_styles']])}
+محدوده‌های قیمت:
+{format_pricing_data(data.get('pricing_data', {}))}
+شهر: {data.get('city', '-')}
+محدوده: {data.get('area', '-')}
+نوع همکاری: {', '.join([coop_types_fa.get(t, t) for t in data.get('cooperation_types', [])])}
+سبک کاری: {', '.join([work_styles_fa.get(s, s) for s in data.get('work_styles', [])])}
 
 📋 سابقه و توضیحات:
 برندها: {data.get('brand_experience', '-')}

@@ -69,9 +69,18 @@ class Supplier(Base):
     special_features = Column(Text)
     
     # اطلاعات همکاری
-    price_range_min = Column(Float)
-    price_range_max = Column(Float)
-    price_unit = Column(String(20))  # hourly, daily
+    pricing_data = Column(JSON)  # Dict containing pricing information for different types
+    # Example pricing_data structure:
+    # {
+    #     "hourly": {"min": 100, "max": 300},  # 100-300 هزار تومان per hour
+    #     "daily": {"min": 500, "max": 1000},  # 500-1000 هزار تومان per day
+    #     "per_cloth": {"min": 200, "max": 400},  # 200-400 هزار تومان per clothing item
+    #     "category_based": {  # Pricing for different categories
+    #         "formal_wear": {"min": 300, "max": 600},
+    #         "casual_wear": {"min": 200, "max": 400},
+    #         ...
+    #     }
+    # }
     city = Column(String(100))
     area = Column(String(100))
     cooperation_types = Column(JSON)  # List of types

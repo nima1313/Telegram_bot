@@ -1,56 +1,190 @@
+telegram_bot  | 2025-08-02 23:04:58,014 - __main__ - INFO - Bot started successfully!
+telegram_bot  | 2025-08-02 23:04:58,014 - aiogram.dispatcher - INFO - Start polling
+telegram_bot  | 2025-08-02 23:04:58,132 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-02 23:05:27,272 - aiogram.event - INFO - Update id=196126077 is handled. Duration 714 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:05:40,444 - aiogram.event - INFO - Update id=196126078 is handled. Duration 198 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:05:43,187 - aiogram.event - INFO - Update id=196126079 is handled. Duration 202 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:05:45,543 - aiogram.event - INFO - Update id=196126080 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:05:47,898 - aiogram.event - INFO - Update id=196126081 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:05:52,200 - aiogram.event - INFO - Update id=196126082 is handled. Duration 308 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:05:58,816 - aiogram.event - INFO - Update id=196126083 is handled. Duration 166 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:05,415 - aiogram.event - INFO - Update id=196126084 is handled. Duration 210 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:06,592 - aiogram.event - INFO - Update id=196126085 is handled. Duration 155 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:10,121 - aiogram.event - INFO - Update id=196126086 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:12,222 - aiogram.event - INFO - Update id=196126087 is handled. Duration 168 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:16,368 - aiogram.event - INFO - Update id=196126088 is handled. Duration 244 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:18,620 - aiogram.event - INFO - Update id=196126089 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:21,181 - aiogram.event - INFO - Update id=196126090 is handled. Duration 232 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:23,228 - aiogram.event - INFO - Update id=196126091 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:24,970 - aiogram.event - INFO - Update id=196126092 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:27,222 - aiogram.event - INFO - Update id=196126093 is handled. Duration 307 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:28,503 - aiogram.event - INFO - Update id=196126094 is handled. Duration 156 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:29,270 - aiogram.event - INFO - Update id=196126095 is handled. Duration 252 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:31,011 - aiogram.event - INFO - Update id=196126096 is handled. Duration 203 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:32,342 - aiogram.event - INFO - Update id=196126097 is handled. Duration 408 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:33,264 - aiogram.event - INFO - Update id=196126098 is handled. Duration 410 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:33,981 - aiogram.event - INFO - Update id=196126099 is handled. Duration 410 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:35,518 - aiogram.event - INFO - Update id=196126100 is handled. Duration 411 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:36,546 - aiogram.event - INFO - Update id=196126101 is handled. Duration 206 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:39,307 - aiogram.event - INFO - Update id=196126102 is handled. Duration 307 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:43,667 - aiogram.event - INFO - Update id=196126103 is handled. Duration 160 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:45,654 - aiogram.event - INFO - Update id=196126104 is handled. Duration 181 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:06:48,161 - aiogram.event - INFO - Update id=196126105 is handled. Duration 341 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:10,971 - aiogram.event - INFO - Update id=196126106 is handled. Duration 820 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:13,581 - aiogram.event - INFO - Update id=196126107 is handled. Duration 153 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:17,627 - aiogram.event - INFO - Update id=196126108 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:18,856 - aiogram.event - INFO - Update id=196126109 is handled. Duration 168 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:20,801 - aiogram.event - INFO - Update id=196126110 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:24,488 - aiogram.event - INFO - Update id=196126111 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:26,332 - aiogram.event - INFO - Update id=196126112 is handled. Duration 206 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:31,751 - aiogram.event - INFO - Update id=196126113 is handled. Duration 197 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:32,679 - aiogram.event - INFO - Update id=196126114 is handled. Duration 203 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:35,119 - aiogram.event - INFO - Update id=196126115 is handled. Duration 251 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:39,030 - aiogram.event - INFO - Update id=196126116 is handled. Duration 304 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:41,487 - aiogram.event - INFO - Update id=196126117 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:43,638 - aiogram.event - INFO - Update id=196126118 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:49,626 - aiogram.event - INFO - Update id=196126119 is handled. Duration 151 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:52,195 - aiogram.event - INFO - Update id=196126120 is handled. Duration 156 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:53,314 - aiogram.event - INFO - Update id=196126121 is handled. Duration 152 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:55,620 - aiogram.event - INFO - Update id=196126122 is handled. Duration 272 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:57,518 - aiogram.event - INFO - Update id=196126123 is handled. Duration 157 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:09:59,893 - aiogram.event - INFO - Update id=196126124 is handled. Duration 280 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:01,559 - aiogram.event - INFO - Update id=196126125 is handled. Duration 219 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:13,791 - aiogram.event - INFO - Update id=196126126 is handled. Duration 369 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:14,563 - aiogram.event - INFO - Update id=196126127 is handled. Duration 409 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:15,385 - aiogram.event - INFO - Update id=196126128 is handled. Duration 309 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:16,330 - aiogram.event - INFO - Update id=196126129 is handled. Duration 331 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:18,353 - aiogram.event - INFO - Update id=196126130 is handled. Duration 213 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:23,371 - aiogram.event - INFO - Update id=196126131 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:24,805 - aiogram.event - INFO - Update id=196126132 is handled. Duration 175 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:26,135 - aiogram.event - INFO - Update id=196126133 is handled. Duration 205 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:27,816 - aiogram.event - INFO - Update id=196126134 is handled. Duration 335 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:45,943 - aiogram.event - INFO - Update id=196126135 is handled. Duration 786 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:51,909 - aiogram.event - INFO - Update id=196126136 is not handled. Duration 8 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:51,909 - aiogram.event - ERROR - Cause exception while process update id=196126136 by bot id=7613774476
+telegram_bot  | KeyError: 'city'
 telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 309, in _process_update
+telegram_bot  |     response = await self.feed_update(bot, update, **kwargs)
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 158, in feed_update
+telegram_bot  |     response = await self.update.wrap_outer_middleware(
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/middlewares/error.py", line 25, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 27, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/fsm/middleware.py", line 41, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+telegram_bot  |     return await wrapped_inner(event, kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+telegram_bot  |     return await wrapped()
+telegram_bot  |            ^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+telegram_bot  |     return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 128, in propagate_event
+telegram_bot  |     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 123, in _wrapped
+telegram_bot  |     return await self._propagate_event(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 156, in _propagate_event
+telegram_bot  |     response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 128, in propagate_event
+telegram_bot  |     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 123, in _wrapped
+telegram_bot  |     return await self._propagate_event(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 148, in _propagate_event
+telegram_bot  |     response = await observer.trigger(event, **kwargs)
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+telegram_bot  |     return await wrapped_inner(event, kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/app/middlewares/database.py", line 18, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+telegram_bot  |     return await wrapped()
+telegram_bot  |            ^^^^^^^^^^^^^^^
+telegram_bot  |   File "/app/handlers/supplier.py", line 842, in process_additional_notes
+telegram_bot  |     await show_confirmation_summary(message, state)
+telegram_bot  |   File "/app/handlers/supplier.py", line 800, in show_confirmation_summary
+telegram_bot  |     summary = create_supplier_summary(data)
+telegram_bot  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/app/handlers/supplier.py", line 1555, in create_supplier_summary
+telegram_bot  |     شهر: {data['city']}
+telegram_bot  |           ~~~~^^^^^^^^
+telegram_bot  | KeyError: 'city'
+telegram_bot  | 2025-08-02 23:10:54,560 - aiogram.event - INFO - Update id=196126137 is not handled. Duration 9 ms by bot id=7613774476
+telegram_bot  | 2025-08-02 23:10:54,561 - aiogram.event - ERROR - Cause exception while process update id=196126137 by bot id=7613774476
+telegram_bot  | KeyError: 'city'
 telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 309, in _process_update
+telegram_bot  |     response = await self.feed_update(bot, update, **kwargs)
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 158, in feed_update
+telegram_bot  |     response = await self.update.wrap_outer_middleware(
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/middlewares/error.py", line 25, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 27, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/fsm/middleware.py", line 41, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+telegram_bot  |     return await wrapped_inner(event, kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+telegram_bot  |     return await wrapped()
+telegram_bot  |            ^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+telegram_bot  |     return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 128, in propagate_event
+telegram_bot  |     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 123, in _wrapped
+telegram_bot  |     return await self._propagate_event(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 156, in _propagate_event
+telegram_bot  |     response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 128, in propagate_event
+telegram_bot  |     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 123, in _wrapped
+telegram_bot  |     return await self._propagate_event(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 148, in _propagate_event
+telegram_bot  |     response = await observer.trigger(event, **kwargs)
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+telegram_bot  |     return await wrapped_inner(event, kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/app/middlewares/database.py", line 18, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+telegram_bot  |     return await wrapped()
+telegram_bot  |            ^^^^^^^^^^^^^^^
+telegram_bot  |   File "/app/handlers/supplier.py", line 842, in process_additional_notes
+telegram_bot  |     await show_confirmation_summary(message, state)
+telegram_bot  |   File "/app/handlers/supplier.py", line 800, in show_confirmation_summary
+telegram_bot  |     summary = create_supplier_summary(data)
+telegram_bot  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/app/handlers/supplier.py", line 1555, in create_supplier_summary
+telegram_bot  |     شهر: {data['city']}
+telegram_bot  |           ~~~~^^^^^^^^
+telegram_bot  | KeyError: 'city'
