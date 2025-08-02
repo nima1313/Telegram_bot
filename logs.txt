@@ -1,0 +1,3 @@
+telegram_bot  | 2025-08-01 13:17:10,002 - __main__ - INFO - Bot started successfully!
+telegram_bot  | 2025-08-01 13:17:10,002 - aiogram.dispatcher - INFO - Start polling
+telegram_bot  | 2025-08-01 13:17:10,097 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'

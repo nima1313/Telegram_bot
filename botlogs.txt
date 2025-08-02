@@ -1,0 +1,211 @@
+telegram_bot  | 2025-08-01 20:06:19,552 - __main__ - INFO - Bot started successfully!
+telegram_bot  | 2025-08-01 20:06:19,552 - aiogram.dispatcher - INFO - Start polling
+telegram_bot  | 2025-08-01 20:06:19,649 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-01 20:06:24,041 - aiogram.event - INFO - Update id=196125378 is handled. Duration 307 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:06:25,464 - aiogram.event - INFO - Update id=196125379 is handled. Duration 220 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:06:27,906 - aiogram.event - INFO - Update id=196125380 is handled. Duration 202 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:06:37,020 - aiogram.event - INFO - Update id=196125381 is handled. Duration 306 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:06:38,964 - aiogram.event - INFO - Update id=196125382 is handled. Duration 147 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:06:41,804 - aiogram.event - INFO - Update id=196125383 is handled. Duration 150 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:06:44,289 - aiogram.event - INFO - Update id=196125384 is handled. Duration 193 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:06:47,341 - aiogram.event - INFO - Update id=196125385 is handled. Duration 181 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:06:51,253 - aiogram.event - INFO - Update id=196125386 is handled. Duration 280 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:06:56,271 - aiogram.event - INFO - Update id=196125387 is handled. Duration 306 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:06:57,535 - aiogram.event - INFO - Update id=196125388 is handled. Duration 342 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:07:00,697 - aiogram.event - INFO - Update id=196125389 is handled. Duration 143 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:07:12,776 - aiogram.event - INFO - Update id=196125390 is handled. Duration 223 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:07:15,215 - aiogram.event - INFO - Update id=196125391 is handled. Duration 202 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:07:17,435 - aiogram.event - INFO - Update id=196125392 is handled. Duration 170 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:07:20,020 - aiogram.event - INFO - Update id=196125393 is handled. Duration 298 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:07:24,637 - aiogram.event - INFO - Update id=196125394 is handled. Duration 205 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:07:26,288 - aiogram.event - INFO - Update id=196125395 is handled. Duration 218 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:07:27,810 - aiogram.event - INFO - Update id=196125396 is handled. Duration 203 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:07:31,599 - aiogram.event - INFO - Update id=196125397 is handled. Duration 203 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:07:33,032 - aiogram.event - INFO - Update id=196125398 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:40:23,990 - aiogram.event - INFO - Update id=196125399 is handled. Duration 429 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:40:25,033 - aiogram.event - INFO - Update id=196125400 is handled. Duration 129 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:40:27,129 - aiogram.event - INFO - Update id=196125401 is handled. Duration 323 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:40:28,718 - aiogram.event - INFO - Update id=196125402 is handled. Duration 200 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:40:35,423 - aiogram.event - INFO - Update id=196125403 is handled. Duration 137 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:40:42,898 - aiogram.event - INFO - Update id=196125404 is handled. Duration 205 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:42:39,418 - aiogram.event - INFO - Update id=196125405 is handled. Duration 381 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:42:44,857 - aiogram.event - INFO - Update id=196125406 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:42:45,985 - aiogram.event - INFO - Update id=196125407 is handled. Duration 205 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:42:51,002 - aiogram.event - INFO - Update id=196125408 is handled. Duration 205 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:42:53,152 - aiogram.event - INFO - Update id=196125409 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:43:00,525 - aiogram.event - INFO - Update id=196125410 is handled. Duration 203 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:43:06,363 - aiogram.event - INFO - Update id=196125411 is handled. Duration 200 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:43:16,855 - aiogram.event - INFO - Update id=196125412 is handled. Duration 195 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:43:18,334 - aiogram.event - INFO - Update id=196125413 is handled. Duration 144 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:43:21,518 - aiogram.event - INFO - Update id=196125414 is handled. Duration 231 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:43:23,710 - aiogram.event - INFO - Update id=196125415 is handled. Duration 154 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:43:31,363 - aiogram.event - INFO - Update id=196125416 is handled. Duration 214 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:43:35,050 - aiogram.event - INFO - Update id=196125417 is not handled. Duration 528 ms by bot id=7613774476
+telegram_bot  | 2025-08-01 20:43:35,050 - aiogram.event - ERROR - Cause exception while process update id=196125417 by bot id=7613774476
+telegram_bot  | ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedFunctionError'>: operator does not exist: json ~~ text
+telegram_bot  | HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+telegram_bot  | [SQL: SELECT suppliers.id, suppliers.user_id, suppliers.full_name, suppliers.gender, suppliers.age, suppliers.phone_number, suppliers.instagram_id, suppliers.height, suppliers.weight, suppliers.hair_color, suppliers.eye_color, suppliers.skin_color, suppliers.top_size, suppliers.bottom_size, suppliers.special_features, suppliers.price_range_min, suppliers.price_range_max, suppliers.price_unit, suppliers.city, suppliers.area, suppliers.cooperation_types, suppliers.work_styles, suppliers.brand_experience, suppliers.additional_notes, suppliers.portfolio_photos, suppliers.created_at, suppliers.updated_at 
+telegram_bot  | FROM suppliers 
+telegram_bot  | WHERE suppliers.city ILIKE $1::VARCHAR AND suppliers.gender = $2::VARCHAR AND suppliers.age >= $3::INTEGER AND suppliers.age <= $4::INTEGER AND suppliers.price_range_min <= $5::INTEGER AND suppliers.price_range_max >= $6::INTEGER AND (suppliers.work_styles LIKE '%' || $7::JSON || '%')]
+telegram_bot  | [parameters: ('%کرج%', 'مرد', 23, 43, 2000000, 1000000, '["religious"]')]
+telegram_bot  | (Background on this error at: https://sqlalche.me/e/20/f405)
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 522, in _prepare_and_execute
+telegram_bot  |     prepared_stmt, attributes = await adapt_connection._prepare(
+telegram_bot  |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 773, in _prepare
+telegram_bot  |     prepared_stmt = await self._connection.prepare(
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/asyncpg/connection.py", line 636, in prepare
+telegram_bot  |     return await self._prepare(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/asyncpg/connection.py", line 654, in _prepare
+telegram_bot  |     stmt = await self._get_statement(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/asyncpg/connection.py", line 433, in _get_statement
+telegram_bot  |     statement = await self._protocol.prepare(
+telegram_bot  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "asyncpg/protocol/protocol.pyx", line 166, in prepare
+telegram_bot  | asyncpg.exceptions.UndefinedFunctionError: operator does not exist: json ~~ text
+telegram_bot  | HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+telegram_bot  | 
+telegram_bot  | The above exception was the direct cause of the following exception:
+telegram_bot  | 
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+telegram_bot  |     self.dialect.do_execute(
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 922, in do_execute
+telegram_bot  |     cursor.execute(statement, parameters)
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 580, in execute
+telegram_bot  |     self._adapt_connection.await_(
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 130, in await_only
+telegram_bot  |     return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 195, in greenlet_spawn
+telegram_bot  |     value = await result
+telegram_bot  |             ^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 558, in _prepare_and_execute
+telegram_bot  |     self._handle_exception(error)
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 509, in _handle_exception
+telegram_bot  |     self._adapt_connection._handle_exception(error)
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+telegram_bot  |     raise translated_error from error
+telegram_bot  | sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedFunctionError'>: operator does not exist: json ~~ text
+telegram_bot  | HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+telegram_bot  | 
+telegram_bot  | The above exception was the direct cause of the following exception:
+telegram_bot  | 
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 309, in _process_update
+telegram_bot  |     response = await self.feed_update(bot, update, **kwargs)
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 158, in feed_update
+telegram_bot  |     response = await self.update.wrap_outer_middleware(
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/middlewares/error.py", line 25, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 27, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/fsm/middleware.py", line 41, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+telegram_bot  |     return await wrapped_inner(event, kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+telegram_bot  |     return await wrapped()
+telegram_bot  |            ^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+telegram_bot  |     return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 128, in propagate_event
+telegram_bot  |     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 123, in _wrapped
+telegram_bot  |     return await self._propagate_event(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 156, in _propagate_event
+telegram_bot  |     response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 128, in propagate_event
+telegram_bot  |     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 123, in _wrapped
+telegram_bot  |     return await self._propagate_event(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 148, in _propagate_event
+telegram_bot  |     response = await observer.trigger(event, **kwargs)
+telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+telegram_bot  |     return await wrapped_inner(event, kwargs)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/app/middlewares/database.py", line 18, in __call__
+telegram_bot  |     return await handler(event, data)
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+telegram_bot  |     return await wrapped()
+telegram_bot  |            ^^^^^^^^^^^^^^^
+telegram_bot  |   File "/app/handlers/demander.py", line 315, in process_search_special_features
+telegram_bot  |     suppliers = await search_suppliers(session, data)
+telegram_bot  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/app/handlers/demander.py", line 607, in search_suppliers
+telegram_bot  |     result = await session.execute(query)
+telegram_bot  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+telegram_bot  |     result = await greenlet_spawn(
+telegram_bot  |              ^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 200, in greenlet_spawn
+telegram_bot  |     result = context.throw(*sys.exc_info())
+telegram_bot  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+telegram_bot  |     return self._execute_internal(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+telegram_bot  |     result: Result[Any] = compile_state_cls.orm_execute_statement(
+telegram_bot  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 293, in orm_execute_statement
+telegram_bot  |     result = conn.execute(
+telegram_bot  |              ^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+telegram_bot  |     return meth(
+telegram_bot  |            ^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 517, in _execute_on_connection
+telegram_bot  |     return connection._execute_clauseelement(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1639, in _execute_clauseelement
+telegram_bot  |     ret = self._execute_context(
+telegram_bot  |           ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+telegram_bot  |     return self._exec_single_context(
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+telegram_bot  |     self._handle_dbapi_exception(
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2344, in _handle_dbapi_exception
+telegram_bot  |     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+telegram_bot  |     self.dialect.do_execute(
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 922, in do_execute
+telegram_bot  |     cursor.execute(statement, parameters)
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 580, in execute
+telegram_bot  |     self._adapt_connection.await_(
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 130, in await_only
+telegram_bot  |     return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 195, in greenlet_spawn
+telegram_bot  |     value = await result
+telegram_bot  |             ^^^^^^^^^^^^
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 558, in _prepare_and_execute
+telegram_bot  |     self._handle_exception(error)
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 509, in _handle_exception
+telegram_bot  |     self._adapt_connection._handle_exception(error)
+telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+telegram_bot  |     raise translated_error from error
+telegram_bot  | sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedFunctionError'>: operator does not exist: json ~~ text
+telegram_bot  | HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+telegram_bot  | [SQL: SELECT suppliers.id, suppliers.user_id, suppliers.full_name, suppliers.gender, suppliers.age, suppliers.phone_number, suppliers.instagram_id, suppliers.height, suppliers.weight, suppliers.hair_color, suppliers.eye_color, suppliers.skin_color, suppliers.top_size, suppliers.bottom_size, suppliers.special_features, suppliers.price_range_min, suppliers.price_range_max, suppliers.price_unit, suppliers.city, suppliers.area, suppliers.cooperation_types, suppliers.work_styles, suppliers.brand_experience, suppliers.additional_notes, suppliers.portfolio_photos, suppliers.created_at, suppliers.updated_at 
+telegram_bot  | FROM suppliers 
+telegram_bot  | WHERE suppliers.city ILIKE $1::VARCHAR AND suppliers.gender = $2::VARCHAR AND suppliers.age >= $3::INTEGER AND suppliers.age <= $4::INTEGER AND suppliers.price_range_min <= $5::INTEGER AND suppliers.price_range_max >= $6::INTEGER AND (suppliers.work_styles LIKE '%' || $7::JSON || '%')]
+telegram_bot  | [parameters: ('%کرج%', 'مرد', 23, 43, 2000000, 1000000, '["religious"]')]
+telegram_bot  | (Background on this error at: https://sqlalche.me/e/20/f405)
