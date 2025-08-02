@@ -1,56 +1,36 @@
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/supplier.py", line 589
-telegram_bot  |     "ثبت
-telegram_bot  |     ^
-telegram_bot  | SyntaxError: unterminated string literal (detected at line 589)
+telegram_bot  | INFO:__main__:Bot started successfully!
+telegram_bot  | INFO:aiogram.dispatcher:Start polling
+telegram_bot  | INFO:aiogram.dispatcher:Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | INFO:aiogram.event:Update id=196125768 is handled. Duration 335 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125769 is handled. Duration 128 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125770 is handled. Duration 122 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125771 is handled. Duration 132 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125772 is handled. Duration 253 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125773 is handled. Duration 126 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125774 is handled. Duration 151 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125775 is handled. Duration 136 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125776 is handled. Duration 125 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125777 is handled. Duration 130 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125778 is handled. Duration 146 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125779 is handled. Duration 135 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125780 is handled. Duration 137 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125781 is handled. Duration 142 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125782 is handled. Duration 124 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125783 is handled. Duration 129 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125784 is handled. Duration 385 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125785 is handled. Duration 590 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125786 is handled. Duration 132 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125787 is handled. Duration 134 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125788 is handled. Duration 128 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125789 is handled. Duration 159 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125790 is handled. Duration 132 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125791 is handled. Duration 197 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125792 is handled. Duration 122 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125793 is handled. Duration 142 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125794 is handled. Duration 132 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125795 is handled. Duration 168 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125796 is handled. Duration 125 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125797 is handled. Duration 149 ms by bot id=7613774476
+telegram_bot  | INFO:aiogram.event:Update id=196125798 is handled. Duration 127 ms by bot id=7613774476
+telegram_bot  | ERROR:handlers.demander:Error during supplier search: Telegram server says - Bad Request: message can't be edited
+telegram_bot  | INFO:aiogram.event:Update id=196125799 is handled. Duration 508 ms by bot id=7613774476
