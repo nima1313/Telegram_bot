@@ -59,18 +59,6 @@ def get_finish_upload_keyboard():
     )
     return keyboard
 
-def get_price_types_keyboard():
-    """کیبورد برای انتخاب نوع قیمت‌گذاری"""
-    keyboard = [
-        [KeyboardButton(text="✅ ساعتی")],
-        [KeyboardButton(text="✅ روزانه")],
-        [KeyboardButton(text="✅ به ازای هر لباس")],
-        [KeyboardButton(text="✅ بر اساس دسته‌بندی")],
-        [KeyboardButton(text="✔️ تأیید و ادامه")],
-        [KeyboardButton(text="↩️ بازگشت")]
-    ]
-    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
-
 def validate_price_range(text: str) -> tuple[int, int] | None:
     """اعتبارسنجی محدوده قیمت (هزار تومان)"""
     try:
@@ -86,6 +74,21 @@ def validate_price_range(text: str) -> tuple[int, int] | None:
     except:
         return None
     return keyboard
+
+
+def get_price_types_keyboard():
+    """کیبورد برای انتخاب نوع قیمت‌گذاری"""
+    keyboard = [
+        [KeyboardButton(text="✅ ساعتی")],
+        [KeyboardButton(text="✅ روزانه")],
+        [KeyboardButton(text="✅ به ازای هر لباس")],
+        [KeyboardButton(text="✅ بر اساس دسته‌بندی")],
+        [KeyboardButton(text="✔️ تأیید و ادامه")],
+        [KeyboardButton(text="↩️ بازگشت")]
+    ]
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+
+
 from sqlalchemy.orm import selectinload
 
 router = Router()
@@ -104,7 +107,7 @@ EDITABLE_FIELDS = {
     "سایز بالاتنه": "top_size",
     "سایز پایین‌تنه": "bottom_size",
     "ویژگی‌های خاص": "special_features",
-    "محدوده قیمت": "price_range",
+    "محدوده قیمت": "pricing_data",
     "شهر": "city",
     "محدوده فعالیت": "area",
     "انواع همکاری": "cooperation_types",
@@ -118,9 +121,17 @@ EDITABLE_FIELDS = {
 @router.message(SupplierRegistration.full_name)
 async def process_full_name(message: Message, state: FSMContext):
     """پردازش نام و نام خانوادگی"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await state.clear()
-        await message.answer("به منوی اصلی بازگشتید.", reply_markup=get_main_menu())
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await state.clear()
+            await message.answer("به منوی اصلی بازگشتید.", reply_markup=get_main_menu())
         return
     
     if len(message.text) < 3:
@@ -128,11 +139,18 @@ async def process_full_name(message: Message, state: FSMContext):
         return
     
     await state.update_data(full_name=message.text)
-    await message.answer(
-        "🔸 جنسیت خود را انتخاب کنید:",
-        reply_markup=get_gender_keyboard()
-    )
-    await state.set_state(SupplierRegistration.gender)
+    
+    if is_editing:
+        await state.update_data(editing=False)
+        await message.answer(f"✅ نام کامل شما به '{message.text}' تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await message.answer(
+            "🔸 جنسیت خود را انتخاب کنید:",
+            reply_markup=get_gender_keyboard()
+        )
+        await state.set_state(SupplierRegistration.gender)
 
 @router.message(SupplierRegistration.gender)
 async def process_gender(message: Message, state: FSMContext):
@@ -160,12 +178,20 @@ async def process_gender(message: Message, state: FSMContext):
 @router.message(SupplierRegistration.age)
 async def process_age(message: Message, state: FSMContext):
     """پردازش سن"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await message.answer(
-            "🔸 جنسیت خود را انتخاب کنید:",
-            reply_markup=get_gender_keyboard()
-        )
-        await state.set_state(SupplierRegistration.gender)
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await message.answer(
+                "🔸 جنسیت خود را انتخاب کنید:",
+                reply_markup=get_gender_keyboard()
+            )
+            await state.set_state(SupplierRegistration.gender)
         return
     
     age = validate_age(message.text)
@@ -174,22 +200,37 @@ async def process_age(message: Message, state: FSMContext):
         return
     
     await state.update_data(age=age)
-    await message.answer(
-        "🔸 شماره تماس خود را وارد کنید (ترجیحاً واتساپ):\n"
-        "مثال: 09123456789",
-        reply_markup=get_back_keyboard()
-    )
-    await state.set_state(SupplierRegistration.phone_number)
+    
+    if is_editing:
+        await state.update_data(editing=False)
+        await message.answer(f"✅ سن شما به {age} سال تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await message.answer(
+            "🔸 شماره تماس خود را وارد کنید (ترجیحاً واتساپ):\n"
+            "مثال: 09123456789",
+            reply_markup=get_back_keyboard()
+        )
+        await state.set_state(SupplierRegistration.phone_number)
 
 @router.message(SupplierRegistration.phone_number)
 async def process_phone_number(message: Message, state: FSMContext):
     """پردازش شماره تماس"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await message.answer(
-            "🔸 سن خود را به عدد وارد کنید:",
-            reply_markup=get_back_keyboard()
-        )
-        await state.set_state(SupplierRegistration.age)
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await message.answer(
+                "🔸 سن خود را به عدد وارد کنید:",
+                reply_markup=get_back_keyboard()
+            )
+            await state.set_state(SupplierRegistration.age)
         return
     
     phone = validate_phone_number(message.text)
@@ -201,37 +242,59 @@ async def process_phone_number(message: Message, state: FSMContext):
         return
     
     await state.update_data(phone_number=phone)
-    await message.answer(
-        "🔸 آیدی اینستاگرام خود را وارد کنید (بدون @):\n"
-        "برای رد کردن روی دکمه 'رد کردن' کلیک کنید.",
-        reply_markup=get_skip_keyboard()
-    )
-    await state.set_state(SupplierRegistration.instagram_id)
+    
+    if is_editing:
+        await state.update_data(editing=False)
+        await message.answer(f"✅ شماره تماس شما به '{phone}' تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await message.answer(
+            "🔸 آیدی اینستاگرام خود را وارد کنید (بدون @):\n"
+            "برای رد کردن روی دکمه 'رد کردن' کلیک کنید.",
+            reply_markup=get_skip_keyboard()
+        )
+        await state.set_state(SupplierRegistration.instagram_id)
 
 @router.message(SupplierRegistration.instagram_id)
 async def process_instagram_id(message: Message, state: FSMContext):
     """پردازش آیدی اینستاگرام"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await message.answer(
-            "🔸 شماره تماس خود را وارد کنید:",
-            reply_markup=get_back_keyboard()
-        )
-        await state.set_state(SupplierRegistration.phone_number)
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await message.answer(
+                "🔸 شماره تماس خود را وارد کنید:",
+                reply_markup=get_back_keyboard()
+            )
+            await state.set_state(SupplierRegistration.phone_number)
         return
     
     instagram_id = None if message.text == "⏭ رد کردن" else message.text.replace("@", "")
     await state.update_data(instagram_id=instagram_id)
     
-    # Ask for portfolio photos
-    await message.answer(
-        "🖼 لطفاً نمونه کارهای خود را ارسال کنید.\n"
-        "(لطفا آن ها را تک تک ارسال کنید)\n"
-        "حداقل یک تصویر ارسال کنید.\n"
-        "پس از اتمام ارسال تصاویر، روی دکمه 'اتمام ارسال تصاویر' کلیک کنید.",
-        reply_markup=get_finish_upload_keyboard()
-    )
-    await state.update_data(portfolio_photos=[])
-    await state.set_state(SupplierRegistration.portfolio_photos)
+    if is_editing:
+        await state.update_data(editing=False)
+        display_value = instagram_id if instagram_id else "حذف شد"
+        await message.answer(f"✅ آیدی اینستاگرام شما به '{display_value}' تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        # Ask for portfolio photos
+        await message.answer(
+            "🖼 لطفاً نمونه کارهای خود را ارسال کنید.\n"
+            "(لطفا آن ها را تک تک ارسال کنید)\n"
+            "حداقل یک تصویر ارسال کنید.\n"
+            "پس از اتمام ارسال تصاویر، روی دکمه 'اتمام ارسال تصاویر' کلیک کنید.",
+            reply_markup=get_finish_upload_keyboard()
+        )
+        await state.update_data(portfolio_photos=[])
+        await state.set_state(SupplierRegistration.portfolio_photos)
 
 @router.message(SupplierRegistration.portfolio_photos)
 async def process_portfolio_photos(message: Message, state: FSMContext):
@@ -276,12 +339,20 @@ async def process_portfolio_photos(message: Message, state: FSMContext):
 @router.message(SupplierRegistration.height)
 async def process_height(message: Message, state: FSMContext):
     """پردازش قد"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await message.answer(
-            "🔸 آیدی اینستاگرام خود را وارد کنید:",
-            reply_markup=get_skip_keyboard()
-        )
-        await state.set_state(SupplierRegistration.instagram_id)
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await message.answer(
+                "🔸 آیدی اینستاگرام خود را وارد کنید:",
+                reply_markup=get_skip_keyboard()
+            )
+            await state.set_state(SupplierRegistration.instagram_id)
         return
     
     height = validate_height_weight(message.text, is_height=True)
@@ -290,22 +361,37 @@ async def process_height(message: Message, state: FSMContext):
         return
     
     await state.update_data(height=height)
-    await message.answer(
-        "🔸 وزن خود را به کیلوگرم وارد کنید:\n"
-        "مثال: 65",
-        reply_markup=get_back_keyboard()
-    )
-    await state.set_state(SupplierRegistration.weight)
+    
+    if is_editing:
+        await state.update_data(editing=False)
+        await message.answer(f"✅ قد شما به {height} سانتی‌متر تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await message.answer(
+            "🔸 وزن خود را به کیلوگرم وارد کنید:\n"
+            "مثال: 65",
+            reply_markup=get_back_keyboard()
+        )
+        await state.set_state(SupplierRegistration.weight)
 
 @router.message(SupplierRegistration.weight)
 async def process_weight(message: Message, state: FSMContext):
     """پردازش وزن"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await message.answer(
-            "🔸 قد خود را به سانتی‌متر وارد کنید:",
-            reply_markup=get_back_keyboard()
-        )
-        await state.set_state(SupplierRegistration.height)
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await message.answer(
+                "🔸 قد خود را به سانتی‌متر وارد کنید:",
+                reply_markup=get_back_keyboard()
+            )
+            await state.set_state(SupplierRegistration.height)
         return
     
     weight = validate_height_weight(message.text, is_height=False)
@@ -314,37 +400,74 @@ async def process_weight(message: Message, state: FSMContext):
         return
     
     await state.update_data(weight=weight)
-    await message.answer(
-        "🔸 رنگ موی خود را وارد کنید:\n"
-        "مثال: مشکی، قهوه‌ای، بلوند",
-        reply_markup=get_back_keyboard()
-    )
-    await state.set_state(SupplierRegistration.hair_color)
+    
+    if is_editing:
+        await state.update_data(editing=False)
+        await message.answer(f"✅ وزن شما به {weight} کیلوگرم تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await message.answer(
+            "🔸 رنگ موی خود را وارد کنید:\n"
+            "مثال: مشکی، قهوه‌ای، بلوند",
+            reply_markup=get_back_keyboard()
+        )
+        await state.set_state(SupplierRegistration.hair_color)
 
 # ادامه فیلدهای ظاهری...
 @router.message(SupplierRegistration.hair_color)
 async def process_hair_color(message: Message, state: FSMContext):
     """پردازش رنگ مو"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await state.set_state(SupplierRegistration.weight)
-        await message.answer("🔸 وزن خود را به کیلوگرم وارد کنید:")
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await state.set_state(SupplierRegistration.weight)
+            await message.answer("🔸 وزن خود را به کیلوگرم وارد کنید:")
         return
     
     await state.update_data(hair_color=message.text)
-    await message.answer("🔸 رنگ چشم خود را وارد کنید:")
-    await state.set_state(SupplierRegistration.eye_color)
+    
+    if is_editing:
+        await state.update_data(editing=False)
+        await message.answer(f"✅ رنگ موی شما به '{message.text}' تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await message.answer("🔸 رنگ چشم خود را وارد کنید:")
+        await state.set_state(SupplierRegistration.eye_color)
 
 @router.message(SupplierRegistration.eye_color)
 async def process_eye_color(message: Message, state: FSMContext):
     """پردازش رنگ چشم"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await state.set_state(SupplierRegistration.hair_color)
-        await message.answer("🔸 رنگ موی خود را وارد کنید:")
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await state.set_state(SupplierRegistration.hair_color)
+            await message.answer("🔸 رنگ موی خود را وارد کنید:")
         return
     
     await state.update_data(eye_color=message.text)
-    await message.answer("🔸 رنگ پوست خود را وارد کنید:")
-    await state.set_state(SupplierRegistration.skin_color)
+    
+    if is_editing:
+        await state.update_data(editing=False)
+        await message.answer(f"✅ رنگ چشم شما به '{message.text}' تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await message.answer("🔸 رنگ پوست خود را وارد کنید:")
+        await state.set_state(SupplierRegistration.skin_color)
 
 @router.message(SupplierRegistration.skin_color)
 async def process_skin_color(message: Message, state: FSMContext):
@@ -509,6 +632,7 @@ async def process_price_range(message: Message, state: FSMContext):
         next_type = selected_types[current_index + 1]
         await process_next_price_type(message, state, next_type)
     else:
+        
         # All price types processed, move to next step
         await message.answer(
             "🔸 شهر محل زندگی خود را وارد کنید:\n"
@@ -520,7 +644,7 @@ async def process_price_range(message: Message, state: FSMContext):
 async def process_next_style_price(message: Message, state: FSMContext, current_style: str):
     """پردازش قیمت برای هر سبک"""
     style_names = {
-        "fashion": "� فشن / کت واک",
+        "fashion": ' فشن / کت واک',
         "advertising": "📢 تبلیغاتی / برندینگ",
         "religious": "🧕 مذهبی / پوشیده",
         "children": "👶 کودک",
@@ -558,7 +682,7 @@ async def process_style_price(message: Message, state: FSMContext):
             "(یعنی از 100 هزار تومان تا 300 هزار تومان)"
         )
         return
-    
+
     data = await state.get_data()
     current_style = data.get('current_style')
     current_price_type = data.get('current_price_type')
@@ -620,36 +744,66 @@ async def process_style_price(message: Message, state: FSMContext):
 @router.message(SupplierRegistration.city)
 async def process_city(message: Message, state: FSMContext):
     """پردازش شهر"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await state.set_state(SupplierRegistration.price_range)
-        await message.answer("🔸 محدوده قیمت همکاری خود را وارد کنید:")
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await state.set_state(SupplierRegistration.price_range)
+            await message.answer("🔸 محدوده قیمت همکاری خود را وارد کنید:")
         return
     
     await state.update_data(city=message.text)
-    await message.answer(
-        "🔸 محدوده فعالیت خود را وارد کنید:\n"
-        "مثال: غرب تهران، کل تهران",
-        reply_markup=get_back_keyboard()
-    )
-    await state.set_state(SupplierRegistration.area)
+    
+    if is_editing:
+        await state.update_data(editing=False)
+        await message.answer(f"✅ شهر شما به '{message.text}' تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await message.answer(
+            "🔸 محدوده فعالیت خود را وارد کنید:\n"
+            "مثال: غرب تهران، کل تهران",
+            reply_markup=get_back_keyboard()
+        )
+        await state.set_state(SupplierRegistration.area)
 
 @router.message(SupplierRegistration.area)
 async def process_area(message: Message, state: FSMContext):
     """پردازش محدوده"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await state.set_state(SupplierRegistration.city)
-        await message.answer("🔸 شهر محل زندگی خود را وارد کنید:")
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await state.set_state(SupplierRegistration.city)
+            await message.answer("🔸 شهر محل زندگی خود را وارد کنید:")
         return
     
     await state.update_data(area=message.text)
-    await state.update_data(selected_cooperation_types=[])
     
-    await message.answer(
-        "🔸 نوع همکاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
-        "روی گزینه‌های مورد نظر کلیک کنید و در انتها 'تأیید و ادامه' را بزنید.",
-        reply_markup=get_cooperation_types_keyboard()
-    )
-    await state.set_state(SupplierRegistration.cooperation_types)
+    if is_editing:
+        await state.update_data(editing=False)
+        await message.answer(f"✅ محدوده فعالیت شما به '{message.text}' تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await state.update_data(selected_cooperation_types=[])
+        
+        await message.answer(
+            "🔸 نوع همکاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
+            "روی گزینه‌های مورد نظر کلیک کنید و در انتها 'تأیید و ادامه' را بزنید.",
+            reply_markup=get_cooperation_types_keyboard()
+        )
+        await state.set_state(SupplierRegistration.cooperation_types)
 
 @router.message(SupplierRegistration.cooperation_types)
 async def process_cooperation_types(message: Message, state: FSMContext):
@@ -658,8 +812,14 @@ async def process_cooperation_types(message: Message, state: FSMContext):
     selected_types = data.get('selected_cooperation_types', [])
     
     if message.text == "↩️ بازگشت":
-        await state.set_state(SupplierRegistration.area)
-        await message.answer("🔸 محدوده فعالیت خود را وارد کنید:")
+        is_editing = data.get('editing', False)
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await state.set_state(SupplierRegistration.area)
+            await message.answer("🔸 محدوده فعالیت خود را وارد کنید:")
         return
     
     if message.text == "✔️ تأیید و ادامه":
@@ -668,15 +828,22 @@ async def process_cooperation_types(message: Message, state: FSMContext):
             return
         
         await state.update_data(cooperation_types=selected_types)
+        is_editing = data.get('editing', False)
         
-        # Move directly to brand experience after cooperation types
-        await message.answer(
-            "🔸 نام برندهایی که با آن‌ها همکاری داشته‌اید را وارد کنید:\n"
-            "مثال: جین وست، آدیداس\n\n"
-            "اگر سابقه همکاری ندارید، روی 'رد کردن' کلیک کنید.",
-            reply_markup=get_skip_keyboard()
-        )
-        await state.set_state(SupplierRegistration.brand_experience)
+        if is_editing:
+            await state.update_data(editing=False)
+            await message.answer("✅ انواع همکاری شما به‌روزرسانی شد.")
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            # Move directly to brand experience after cooperation types
+            await message.answer(
+                "🔸 نام برندهایی که با آن‌ها همکاری داشته‌اید را وارد کنید:\n"
+                "مثال: جین وست، آدیداس\n\n"
+                "اگر سابقه همکاری ندارید، روی 'رد کردن' کلیک کنید.",
+                reply_markup=get_skip_keyboard()
+            )
+            await state.set_state(SupplierRegistration.brand_experience)
         return
     
     # مدیریت انتخاب/لغو انتخاب
@@ -710,11 +877,17 @@ async def process_work_styles(message: Message, state: FSMContext):
     selected_styles = data.get('selected_work_styles', [])
     
     if message.text == "↩️ بازگشت":
-        await state.set_state(SupplierRegistration.cooperation_types)
-        await message.answer(
-            "🔸 نوع همکاری مورد نظر خود را انتخاب کنید:",
-            reply_markup=get_cooperation_types_keyboard()
-        )
+        is_editing = data.get('editing', False)
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await state.set_state(SupplierRegistration.cooperation_types)
+            await message.answer(
+                "🔸 نوع همکاری مورد نظر خود را انتخاب کنید:",
+                reply_markup=get_cooperation_types_keyboard()
+            )
         return
     
     if message.text == "✔️ تأیید و ادامه":
@@ -723,15 +896,23 @@ async def process_work_styles(message: Message, state: FSMContext):
             return
         
         await state.update_data(work_styles=selected_styles)
-        await state.update_data(selected_price_types=[])
+        is_editing = data.get('editing', False)
         
-        await message.answer(
-            "حالا اطلاعات قیمت‌گذاری خود را وارد کنید.\n\n"
-            "🔸 نحوه قیمت‌گذاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
-            "برای هر کدام از موارد انتخابی در مرحله بعد محدوده قیمت دریافت خواهد شد.",
-            reply_markup=get_price_types_keyboard()
-        )
-        await state.set_state(SupplierRegistration.price_types)
+        if is_editing:
+            await state.update_data(editing=False)
+            await message.answer("✅ سبک‌های کاری شما به‌روزرسانی شد.")
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await state.update_data(selected_price_types=[])
+            
+            await message.answer(
+                "حالا اطلاعات قیمت‌گذاری خود را وارد کنید.\n\n"
+                "🔸 نحوه قیمت‌گذاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
+                "برای هر کدام از موارد انتخابی در مرحله بعد محدوده قیمت دریافت خواهد شد.",
+                reply_markup=get_price_types_keyboard()
+            )
+            await state.set_state(SupplierRegistration.price_types)
         return
     
     # مدیریت انتخاب/لغو انتخاب
@@ -768,24 +949,39 @@ async def process_work_styles(message: Message, state: FSMContext):
 @router.message(SupplierRegistration.brand_experience)
 async def process_brand_experience(message: Message, state: FSMContext):
     """پردازش سابقه همکاری با برندها"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await state.set_state(SupplierRegistration.work_styles)
-        await message.answer(
-            "🔸 سبک کاری مورد علاقه خود را انتخاب کنید:",
-            reply_markup=get_work_styles_keyboard()
-        )
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await state.set_state(SupplierRegistration.work_styles)
+            await message.answer(
+                "🔸 سبک کاری مورد علاقه خود را انتخاب کنید:",
+                reply_markup=get_work_styles_keyboard()
+            )
         return
     
     brand_experience = None if message.text == "⏭ رد کردن" else message.text
     await state.update_data(brand_experience=brand_experience)
     
-    await message.answer(
-        "🔸 توضیحات تکمیلی (اختیاری):\n"
-        "مثلاً: روزهای در دسترس، نوع همکاری‌هایی که نمی‌پذیرید و...\n\n"
-        "اگر توضیحی ندارید، روی 'رد کردن' کلیک کنید.",
-        reply_markup=get_skip_keyboard()
-    )
-    await state.set_state(SupplierRegistration.additional_notes)
+    if is_editing:
+        await state.update_data(editing=False)
+        display_value = brand_experience if brand_experience else "حذف شد"
+        await message.answer(f"✅ سابقه برند شما به '{display_value}' تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await message.answer(
+            "🔸 توضیحات تکمیلی (اختیاری):\n"
+            "مثلاً: روزهای در دسترس، نوع همکاری‌هایی که نمی‌پذیرید و...\n\n"
+            "اگر توضیحی ندارید، روی 'رد کردن' کلیک کنید.",
+            reply_markup=get_skip_keyboard()
+        )
+        await state.set_state(SupplierRegistration.additional_notes)
 
 async def show_confirmation_summary(message: types.Message, state: FSMContext):
     """Helper function to show the confirmation summary."""
@@ -821,18 +1017,33 @@ async def show_confirmation_summary(message: types.Message, state: FSMContext):
 @router.message(SupplierRegistration.additional_notes)
 async def process_additional_notes(message: Message, state: FSMContext):
     """پردازش توضیحات اضافی و نمایش خلاصه"""
+    data = await state.get_data()
+    is_editing = data.get('editing', False)
+    
     if message.text == "↩️ بازگشت":
-        await state.set_state(SupplierRegistration.brand_experience)
-        await message.answer(
-            "🔸 نام برندهایی که با آن‌ها همکاری داشته‌اید را وارد کنید:",
-            reply_markup=get_skip_keyboard()
-        )
+        if is_editing:
+            await state.update_data(editing=False)
+            await state.set_state(SupplierRegistration.editing_field)
+            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+        else:
+            await state.set_state(SupplierRegistration.brand_experience)
+            await message.answer(
+                "🔸 نام برندهایی که با آن‌ها همکاری داشته‌اید را وارد کنید:",
+                reply_markup=get_skip_keyboard()
+            )
         return
     
     additional_notes = None if message.text == "⏭ رد کردن" else message.text
     await state.update_data(additional_notes=additional_notes)
     
-    await show_confirmation_summary(message, state)
+    if is_editing:
+        await state.update_data(editing=False)
+        display_value = additional_notes if additional_notes else "حذف شد"
+        await message.answer(f"✅ توضیحات شما به '{display_value}' تغییر یافت.")
+        await state.set_state(SupplierRegistration.editing_field)
+        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
+    else:
+        await show_confirmation_summary(message, state)
 
 @router.message(SupplierRegistration.confirm)
 async def process_confirmation(message: Message, state: FSMContext, session: AsyncSession):
@@ -968,9 +1179,70 @@ async def registration_choose_field_to_edit(message: Message, state: FSMContext)
         return
 
     field_to_edit = EDITABLE_FIELDS[message.text]
-    await state.update_data(field_to_edit=field_to_edit, field_to_edit_fa=message.text)
+    await state.update_data(field_to_edit=field_to_edit, field_to_edit_fa=message.text, editing=True)
     
-    if field_to_edit == "portfolio_photos":
+    # Redirect to appropriate registration state based on field
+    if field_to_edit == "full_name":
+        await message.answer("🔸 نام و نام خانوادگی جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.full_name)
+    elif field_to_edit == "age":
+        await message.answer("🔸 سن جدید خود را به عدد وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.age)
+    elif field_to_edit == "phone_number":
+        await message.answer("🔸 شماره تماس جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.phone_number)
+    elif field_to_edit == "instagram_id":
+        await message.answer("🔸 آیدی اینستاگرام جدید خود را وارد کنید:", reply_markup=get_skip_keyboard())
+        await state.set_state(SupplierRegistration.instagram_id)
+    elif field_to_edit == "height":
+        await message.answer("🔸 قد جدید خود را به سانتی‌متر وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.height)
+    elif field_to_edit == "weight":
+        await message.answer("🔸 وزن جدید خود را به کیلوگرم وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.weight)
+    elif field_to_edit == "hair_color":
+        await message.answer("🔸 رنگ موی جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.hair_color)
+    elif field_to_edit == "eye_color":
+        await message.answer("🔸 رنگ چشم جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.eye_color)
+    elif field_to_edit == "skin_color":
+        await message.answer("🔸 رنگ پوست جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.skin_color)
+    elif field_to_edit == "top_size":
+        await message.answer("🔸 سایز بالاتنه جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.top_size)
+    elif field_to_edit == "bottom_size":
+        await message.answer("🔸 سایز پایین‌تنه جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.bottom_size)
+    elif field_to_edit == "special_features":
+        await message.answer("🔸 ویژگی‌های خاص جدید خود را وارد کنید:", reply_markup=get_skip_keyboard())
+        await state.set_state(SupplierRegistration.special_features)
+    elif field_to_edit == "city":
+        await message.answer("🔸 شهر جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.city)
+    elif field_to_edit == "area":
+        await message.answer("🔸 محدوده فعالیت جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await state.set_state(SupplierRegistration.area)
+    elif field_to_edit == "brand_experience":
+        await message.answer("🔸 سابقه برند جدید خود را وارد کنید:", reply_markup=get_skip_keyboard())
+        await state.set_state(SupplierRegistration.brand_experience)
+    elif field_to_edit == "additional_notes":
+        await message.answer("🔸 توضیحات جدید خود را وارد کنید:", reply_markup=get_skip_keyboard())
+        await state.set_state(SupplierRegistration.additional_notes)
+    elif field_to_edit == "work_styles":
+        await state.update_data(selected_work_styles=[])
+        await message.answer("🔸 سبک‌های کاری جدید خود را انتخاب کنید:", reply_markup=get_work_styles_keyboard())
+        await state.set_state(SupplierRegistration.work_styles)
+    elif field_to_edit == "cooperation_types":
+        await state.update_data(selected_cooperation_types=[])
+        await message.answer("🔸 انواع همکاری جدید خود را انتخاب کنید:", reply_markup=get_cooperation_types_keyboard())
+        await state.set_state(SupplierRegistration.cooperation_types)
+    elif field_to_edit == "pricing_data":
+        await state.update_data(selected_price_types=[], pricing_data={}, current_price_type=None, current_style=None)
+        await message.answer("🔸 نحوه قیمت‌گذاری جدید خود را انتخاب کنید:", reply_markup=get_price_types_keyboard())
+        await state.set_state(SupplierRegistration.price_types)
+    elif field_to_edit == "portfolio_photos":
         await state.set_state(SupplierRegistration.managing_photos)
         data = await state.get_data()
         photos = data.get('portfolio_photos', [])
@@ -984,56 +1256,10 @@ async def registration_choose_field_to_edit(message: Message, state: FSMContext)
             f"شما در حال حاضر {len(photos)} تصویر دارید. چه کاری می‌خواهید انجام دهید?",
             reply_markup=get_photo_management_keyboard()
         )
-        return
+    else:
+        await message.answer("این فیلد قابل ویرایش نیست.")
 
-    await state.set_state(SupplierRegistration.entering_new_value)
-    await message.answer(f"لطفاً مقدار جدید برای '{message.text}' را وارد کنید:", reply_markup=get_back_keyboard())
 
-@router.message(SupplierRegistration.entering_new_value)
-async def registration_enter_new_value(message: Message, state: FSMContext):
-    """Enter the new value for the selected field during registration."""
-    if message.text == "↩️ بازگشت":
-        await state.set_state(SupplierRegistration.editing_field)
-        await message.answer("از کدام بخش می‌خواهید ویرایش کنید؟", reply_markup=get_edit_profile_keyboard())
-        return
-
-    data = await state.get_data()
-    field_to_edit = data.get("field_to_edit")
-    new_value = message.text
-
-    # --- Validation ---
-    if field_to_edit == 'age':
-        age = validate_age(new_value)
-        if not age:
-            await message.answer("سن نامعتبر است. لطفاً عدد بین ۱۵ تا ۸۰ وارد کنید.")
-            return
-        new_value = age
-    elif field_to_edit == 'phone_number':
-        phone = validate_phone_number(new_value)
-        if not phone:
-            await message.answer("شماره تماس نامعتبر است.")
-            return
-        new_value = phone
-    elif field_to_edit == 'pricing_data':
-        # Reset pricing data and start the new pricing flow
-        await state.update_data(
-            selected_price_types=[],
-            pricing_data={},
-            current_price_type=None,
-            current_style=None
-        )
-        await message.answer(
-            "🔸 نحوه قیمت‌گذاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
-            "برای هر کدام از موارد انتخابی در مرحله بعد محدوده قیمت دریافت خواهد شد.",
-            reply_markup=get_price_types_keyboard()
-        )
-        await state.set_state(SupplierRegistration.price_types)
-        return
-    
-    await state.update_data({field_to_edit: new_value})
-    
-    await message.answer(f"✅ '{data.get('field_to_edit_fa')}' با موفقیت ویرایش شد.")
-    await show_confirmation_summary(message, state)
 
 # --- Photo Management During Registration ---
 
@@ -1196,6 +1422,23 @@ async def edit_profile_choose_field(message: Message, state: FSMContext, session
     # For other fields
     field_to_edit = EDITABLE_FIELDS[message.text]
     await state.update_data(field_to_edit=field_to_edit, field_to_edit_fa=message.text)
+    
+    # If user wants to edit price, start the detailed pricing flow
+    if field_to_edit == "pricing_data":
+        # Reset pricing data and start the new pricing flow
+        await state.update_data(
+            selected_price_types=[],
+            pricing_data={},
+            current_price_type=None,
+            current_style=None
+        )
+        await message.answer(
+            "🔸 نحوه قیمت‌گذاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
+            "برای هر کدام از موارد انتخابی در مرحله بعد محدوده قیمت دریافت خواهد شد.",
+            reply_markup=get_price_types_keyboard()
+        )
+        await state.set_state(SupplierRegistration.price_types)
+        return
     
     await state.set_state(SupplierEditProfile.entering_value)
     await message.answer(f"لطفاً مقدار جدید برای '{message.text}' را وارد کنید:", reply_markup=get_back_keyboard())
