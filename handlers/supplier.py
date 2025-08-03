@@ -857,6 +857,45 @@ async def process_confirmation(message: Message, state: FSMContext, session: Asy
         try:
             data = await state.get_data()
             
+            # Clean up and transform pricing data
+            raw_pricing_data = data.get('pricing_data', {})
+            selected_price_types = data.get('selected_price_types', [])
+            work_styles = data.get('work_styles', [])
+            
+            # Create clean pricing structure
+            clean_pricing_data = {}
+            
+            # Handle regular price types
+            for price_type in ['hourly', 'daily', 'per_cloth']:
+                if price_type in selected_price_types and price_type in raw_pricing_data:
+                    clean_pricing_data[price_type] = {
+                        "min": raw_pricing_data[price_type].get('min', 0),
+                        "max": raw_pricing_data[price_type].get('max', 0)
+                    }
+            
+            # Handle category-based pricing
+            if 'category_based' in selected_price_types:
+                clean_pricing_data['category_based'] = {}
+                for style in work_styles:
+                    # Get the price from the correct location in raw data
+                    style_price = None
+                    if style in raw_pricing_data and 'category_based' in raw_pricing_data[style]:
+                        style_price = raw_pricing_data[style]['category_based']
+                    elif 'category_based' in raw_pricing_data and style in raw_pricing_data['category_based']:
+                        style_price = raw_pricing_data['category_based'][style]
+                    
+                    if style_price:
+                        clean_pricing_data['category_based'][style] = {
+                            "min": style_price.get('min', 0),
+                            "max": style_price.get('max', 0)
+                        }
+            
+            # Update the data with clean pricing structure
+            data['pricing_data'] = clean_pricing_data
+            
+            logging.info("Cleaned pricing data structure:")
+            logging.info(json.dumps(clean_pricing_data, indent=2, ensure_ascii=False))
+            
             user = await get_or_create_user(session, message.from_user, UserRole.SUPPLIER)
             user.role = UserRole.SUPPLIER
             
@@ -870,9 +909,6 @@ async def process_confirmation(message: Message, state: FSMContext, session: Asy
                 for key, value in data.items():
                     if hasattr(supplier, key):
                         setattr(supplier, key, value)
-                supplier.price_range_min = extract_price_min(data['price_range'])
-                supplier.price_range_max = extract_price_max(data['price_range'])
-                supplier.price_unit = extract_price_unit(data['price_range'])
             else:
                 # Create new profile
                 supplier = Supplier(
@@ -891,9 +927,7 @@ async def process_confirmation(message: Message, state: FSMContext, session: Asy
                     top_size=data['top_size'],
                     bottom_size=data['bottom_size'],
                     special_features=data.get('special_features'),
-                    price_range_min=extract_price_min(data['price_range']),
-                    price_range_max=extract_price_max(data['price_range']),
-                    price_unit=extract_price_unit(data['price_range']),
+                    pricing_data=data.get('pricing_data', {}),
                     city=data['city'],
                     area=data['area'],
                     cooperation_types=data['cooperation_types'],
@@ -980,6 +1014,21 @@ async def registration_enter_new_value(message: Message, state: FSMContext):
             await message.answer("شماره تماس نامعتبر است.")
             return
         new_value = phone
+    elif field_to_edit == 'pricing_data':
+        # Reset pricing data and start the new pricing flow
+        await state.update_data(
+            selected_price_types=[],
+            pricing_data={},
+            current_price_type=None,
+            current_style=None
+        )
+        await message.answer(
+            "🔸 نحوه قیمت‌گذاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
+            "برای هر کدام از موارد انتخابی در مرحله بعد محدوده قیمت دریافت خواهد شد.",
+            reply_markup=get_price_types_keyboard()
+        )
+        await state.set_state(SupplierRegistration.price_types)
+        return
     
     await state.update_data({field_to_edit: new_value})
     
@@ -1197,6 +1246,21 @@ async def edit_profile_enter_value(message: Message, state: FSMContext, session:
             await message.answer("شماره تماس نامعتبر است.")
             return
         new_value = phone
+    elif field_to_edit == 'pricing_data':
+        # Reset pricing data and start the new pricing flow
+        await state.update_data(
+            selected_price_types=[],
+            pricing_data={},
+            current_price_type=None,
+            current_style=None
+        )
+        await message.answer(
+            "🔸 نحوه قیمت‌گذاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
+            "برای هر کدام از موارد انتخابی در مرحله بعد محدوده قیمت دریافت خواهد شد.",
+            reply_markup=get_price_types_keyboard()
+        )
+        await state.set_state(SupplierRegistration.price_types)
+        return
 
     try:
         # Update the database

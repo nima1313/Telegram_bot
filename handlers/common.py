@@ -133,20 +133,37 @@ async def cmd_profile(message: Message, session: AsyncSession):
 
 def format_price_for_profile(supplier):
     """فرمت قیمت برای نمایش در پروفایل"""
-    unit_fa = {
-        'hourly': 'ساعتی',
-        'daily': 'روزی',
-        'project': 'پروژه‌ای'
-    }
+    if not supplier.pricing_data:
+        return "توافقی"
+
+    # Try to find a daily or hourly price to show
+    price_info = None
+    unit = ""
+    if 'daily' in supplier.pricing_data and isinstance(supplier.pricing_data.get('daily'), dict):
+        price_info = supplier.pricing_data['daily']
+        unit = "روزی"
+    elif 'hourly' in supplier.pricing_data and isinstance(supplier.pricing_data.get('hourly'), dict):
+        price_info = supplier.pricing_data['hourly']
+        unit = "ساعتی"
     
-    unit = unit_fa.get(supplier.price_unit, '')
-    min_price = f"{supplier.price_range_min:,.0f}"
-    max_price = f"{supplier.price_range_max:,.0f}"
-    
-    if supplier.price_range_min == supplier.price_range_max:
-        return f"{unit} {min_price} تومان"
+    if not price_info:
+        # If no daily/hourly, find the first available price
+        for p_type, p_info in supplier.pricing_data.items():
+            if p_type != 'category_based' and isinstance(p_info, dict):
+                price_info = p_info
+                unit = {'per_cloth': 'هر لباس'}.get(p_type, 'توافقی')
+                break
+
+    if not price_info:
+        return "توافقی"
+
+    min_price = price_info.get('min', 0) * 1000
+    max_price = price_info.get('max', 0) * 1000
+
+    if min_price == max_price:
+        return f"{unit} {min_price:,.0f} تومان"
     else:
-        return f"{unit} {min_price} تا {max_price} تومان"
+        return f"{unit} {min_price:,.0f} تا {max_price:,.0f} تومان"
 
 # مدیریت درخواست‌ها
 @router.message(F.text == "📥 درخواست‌های من")

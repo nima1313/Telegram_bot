@@ -557,15 +557,15 @@ async def start_new_search(callback: CallbackQuery, state: FSMContext, session: 
 async def search_suppliers(session: AsyncSession, search_criteria: dict) -> List[Supplier]:
     """جستجوی تأمین‌کنندگان بر اساس فیلترها"""
     query = select(Supplier)
-    
+
     # فیلتر شهر
     if search_criteria.get('search_city'):
         query = query.where(Supplier.city.ilike(f"%{search_criteria['search_city']}%"))
-    
+
     # فیلتر جنسیت
     if search_criteria.get('search_gender'):
         query = query.where(Supplier.gender == search_criteria['search_gender'])
-    
+
     # فیلتر محدوده سنی
     if search_criteria.get('search_age_range'):
         min_age, max_age = search_criteria['search_age_range']
@@ -573,18 +573,7 @@ async def search_suppliers(session: AsyncSession, search_criteria: dict) -> List
             Supplier.age >= min_age,
             Supplier.age <= max_age
         ))
-    
-    # فیلتر محدوده قیمت
-    if search_criteria.get('search_price_range'):
-        min_price, max_price = search_criteria['search_price_range']
-        if max_price != float('inf'):
-            query = query.where(and_(
-                Supplier.price_range_min <= max_price,
-                Supplier.price_range_max >= min_price
-            ))
-        else:
-            query = query.where(Supplier.price_range_min >= min_price)
-    
+
     # فیلتر سبک کاری
     if search_criteria.get('search_work_styles'):
         # برای هر سبک انتخاب شده، چک می‌کنیم که در لیست سبک‌های تأمین‌کننده باشد
@@ -593,7 +582,7 @@ async def search_suppliers(session: AsyncSession, search_criteria: dict) -> List
             style_conditions.append(Supplier.work_styles.contains([style]))
         if style_conditions:
             query = query.where(or_(*style_conditions))
-    
+
     # فیلتر ویژگی خاص
     if search_criteria.get('search_special_features'):
         features = search_criteria['search_special_features']
@@ -602,11 +591,44 @@ async def search_suppliers(session: AsyncSession, search_criteria: dict) -> List
             Supplier.hair_color.ilike(f"%{features}%"),
             Supplier.eye_color.ilike(f"%{features}%")
         ))
-    
+
     # اجرای کوئری
     result = await session.execute(query)
     suppliers = result.scalars().all()
-    
+
+    # فیلتر قیمت در پایتون
+    if search_criteria.get('search_price_range'):
+        min_price, max_price = search_criteria['search_price_range']
+        filtered_suppliers = []
+        for supplier in suppliers:
+            if not supplier.pricing_data:
+                continue
+
+            is_match = False
+            for price_type, price_info in supplier.pricing_data.items():
+                if price_type == 'category_based':
+                    if isinstance(price_info, dict):
+                        for category, category_price_info in price_info.items():
+                            if isinstance(category_price_info, dict):
+                                db_min = category_price_info.get('min', 0) * 1000
+                                db_max = category_price_info.get('max', 0) * 1000
+                                if db_min <= max_price and db_max >= min_price:
+                                    is_match = True
+                                    break
+                elif isinstance(price_info, dict):
+                    db_min = price_info.get('min', 0) * 1000
+                    db_max = price_info.get('max', 0) * 1000
+                    if db_min <= max_price and db_max >= min_price:
+                        is_match = True
+                        break
+                if is_match:
+                    break
+            
+            if is_match:
+                filtered_suppliers.append(supplier)
+        
+        suppliers = filtered_suppliers
+
     return suppliers
 
 def format_supplier_summary(supplier: Supplier) -> str:
@@ -654,7 +676,7 @@ def format_supplier_details(supplier: Supplier) -> str:
     details = f"""
 🎭 اطلاعات امل تأمین‌کننده
 
-👤 نام: {supplierfull_name}
+👤 نام: {supplier.full_name}
 � تماس: {supplier.phone_number}
 � موقعیت: {supplier.city} - {supplier.area}
 """
@@ -664,7 +686,7 @@ def format_supplier_details(supplier: Supplier) -> str:
     
     details += f"""
 � مشخصات:
-- جنسیت: {supplier.gender}
+-جنسیت: {supplier.gender}
 - سن: {supplier.age} سال
 - قد: {supplier.height} سانتی‌متر
 - وزن: {supplier.weight} کیلوگرم
@@ -695,32 +717,70 @@ def format_supplier_details(supplier: Supplier) -> str:
 
 def format_price_short(supplier: Supplier) -> str:
     """فرمت کوتاه قیمت برای نمایش در لیست"""
+    if not supplier.pricing_data:
+        return "قیمت نامشخص"
+
+    price_to_show = None
+    unit_to_show = ""
+
     unit_fa = {
         'hourly': 'ساعتی',
         'daily': 'روزی',
-        'project': 'پروژه‌ای'
+        'per_cloth': 'هر لباس'
     }
-    
-    unit = unit_fa.get(supplier.price_unit, '')
-    
-    if supplier.price_range_min == supplier.price_range_max:
-        return f"{unit} {supplier.price_range_min/1000:.0f}K"
+
+    if 'daily' in supplier.pricing_data and isinstance(supplier.pricing_data['daily'], dict):
+        price_to_show = supplier.pricing_data['daily']
+        unit_to_show = unit_fa['daily']
     else:
-        return f"{unit} {supplier.price_range_min/1000:.0f}-{supplier.price_range_max/1000:.0f}K"
+        for p_type, p_info in supplier.pricing_data.items():
+            if p_type != 'category_based' and isinstance(p_info, dict):
+                price_to_show = p_info
+                unit_to_show = unit_fa.get(p_type, p_type)
+                break
+    
+    if not price_to_show:
+        return "قیمت توافقی"
+
+    min_p = price_to_show.get('min', 0)
+    max_p = price_to_show.get('max', 0)
+
+    if min_p == max_p:
+        return f"{unit_to_show} {min_p}K"
+    else:
+        return f"{unit_to_show} {min_p}-{max_p}K"
 
 def format_price_range(supplier: Supplier) -> str:
     """فرمت کامل محدوده قیمت"""
-    unit_fa = {
-        'hourly': 'ساعتی',
-        'daily': 'روزی',
-        'project': 'پروژه‌ای'
+    if not supplier.pricing_data:
+        return "اطلاعات قیمت‌گذاری موجود نیست"
+
+    formatted_lines = []
+    price_types_fa = {
+        "hourly": "ساعتی",
+        "daily": "روزانه",
+        "per_cloth": "به ازای هر لباس"
     }
     
-    min_price = f"{supplier.price_range_min:,.0f}"
-    max_price = f"{supplier.price_range_max:,.0f}"
-    unit = unit_fa.get(supplier.price_unit, '')
-    
-    if supplier.price_range_min == supplier.price_range_max:
-        return f"{unit} {min_price} تومان"
-    else:
-        return f"{unit} {min_price} تا {max_price} تومان"
+    for price_type, data in supplier.pricing_data.items():
+        if price_type == "category_based":
+            if isinstance(data, dict) and data:
+                formatted_lines.append("قیمت‌گذاری بر اساس سبک:")
+                for style, price in data.items():
+                    style_price = f"  - سبک {style}: "
+                    if isinstance(price, dict) and "min" in price and "max" in price:
+                        min_p = price['min'] * 1000
+                        max_p = price['max'] * 1000
+                        style_price += f"{min_p:,.0f} تا {max_p:,.0f} تومان"
+                    formatted_lines.append(style_price)
+        else:
+            if price_type in price_types_fa and isinstance(data, dict):
+                price_line = f"{price_types_fa[price_type]}: "
+                if "min" in data and "max" in data:
+                    min_p = data['min'] * 1000
+                    max_p = data['max'] * 1000
+                    price_line += f"{min_p:,.0f} تا {max_p:,.0f} تومان"
+                formatted_lines.append(price_line)
+
+    return "\n".join(formatted_lines) if formatted_lines else "قیمت توافقی"
+
