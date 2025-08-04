@@ -80,9 +80,15 @@ async def select_demander_role(message: Message, state: FSMContext, session: Asy
     user = result.scalar_one_or_none()
     
     if user and user.demander_profile:
-        # کاربر قبلاً پروفایل درخواست‌کننده دارد
-        from handlers.demander import show_search_menu
-        await show_search_menu(message, state, session)
+        # کاربر قبلاً پروفایل درخواست‌کننده دارد - به منوی درخواست‌کننده هدایت کنیم
+        from keyboards.demander import get_demander_menu_keyboard
+        from states.demander import DemanderMenu
+        await message.answer(
+            "سلام! به ربات خوش آمدید.\n"
+            "شما قبلاً به عنوان درخواست‌کننده ثبت‌نام کرده‌اید.",
+            reply_markup=get_demander_menu_keyboard()
+        )
+        await state.set_state(DemanderMenu.main_menu)
     else:
         # شروع فرآیند ثبت‌نام
         await message.answer(

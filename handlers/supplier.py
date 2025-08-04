@@ -1934,7 +1934,7 @@ def format_price_range(supplier: Supplier) -> str:
         "daily": "روزانه",
         "per_cloth": "به ازای هر لباس"
     }
-    
+
     for price_type, data in supplier.pricing_data.items():
         if price_type == "category_based":
             if isinstance(data, dict) and data:

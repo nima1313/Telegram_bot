@@ -105,9 +105,14 @@ class Demander(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)
     
+    # اطلاعات پایه
     full_name = Column(String(200))
     company_name = Column(String(200))
+    address = Column(String(255))
+    gender = Column(String(10))
     phone_number = Column(String(20))
+    instagram_id = Column(String(100))
+    additional_notes = Column(Text)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
