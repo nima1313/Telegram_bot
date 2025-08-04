@@ -1924,18 +1924,35 @@ def extract_price_unit(price_range: str) -> str:
     return 'project'
 
 def format_price_range(supplier: Supplier) -> str:
-    """فرمت کردن محدوده قیمت"""
-    unit_fa = {
-        'hourly': 'ساعتی',
-        'daily': 'روزی',
-        'project': 'پروژه‌ای'
+    """فرمت کامل محدوده قیمت"""
+    if not supplier.pricing_data:
+        return "اطلاعات قیمت‌گذاری موجود نیست"
+
+    formatted_lines = []
+    price_types_fa = {
+        "hourly": "ساعتی",
+        "daily": "روزانه",
+        "per_cloth": "به ازای هر لباس"
     }
     
-    min_price = f"{supplier.price_range_min:,.0f}"
-    max_price = f"{supplier.price_range_max:,.0f}"
-    unit = unit_fa.get(supplier.price_unit, '')
-    
-    if supplier.price_range_min == supplier.price_range_max:
-        return f"{unit} {min_price} تومان"
-    else:
-        return f"{unit} {min_price} تا {max_price} تومان"
+    for price_type, data in supplier.pricing_data.items():
+        if price_type == "category_based":
+            if isinstance(data, dict) and data:
+                formatted_lines.append("قیمت‌گذاری بر اساس سبک:")
+                for style, price in data.items():
+                    style_price = f"  - سبک {style}: "
+                    if isinstance(price, dict) and "min" in price and "max" in price:
+                        min_p = price['min'] * 1000
+                        max_p = price['max'] * 1000
+                        style_price += f"{min_p:,.0f} تا {max_p:,.0f} تومان"
+                    formatted_lines.append(style_price)
+        else:
+            if price_type in price_types_fa and isinstance(data, dict):
+                price_line = f"{price_types_fa[price_type]}: "
+                if "min" in data and "max" in data:
+                    min_p = data['min'] * 1000
+                    max_p = data['max'] * 1000
+                    price_line += f"{min_p:,.0f} تا {max_p:,.0f} تومان"
+                formatted_lines.append(price_line)
+
+    return "\n".join(formatted_lines) if formatted_lines else "قیمت توافقی"
