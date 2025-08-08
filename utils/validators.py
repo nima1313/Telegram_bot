@@ -40,6 +40,23 @@ def validate_height_weight(value_str: str, is_height: bool = True) -> Optional[i
         pass
     return None
 
+def validate_price(price_str: str) -> Optional[int]:
+    """اعتبارسنجی قیمت تکی (به هزار تومان)
+
+    ورودی می‌تواند شامل متن و عدد باشد. اولین عدد استخراج و بازگردانده می‌شود.
+    مثال معتبر: "250" یا "250 هزار". مقدار باید > 0 باشد.
+    """
+    try:
+        numbers = re.findall(r"\d+", price_str)
+        if not numbers:
+            return None
+        price = int(numbers[0])
+        if price <= 0:
+            return None
+        return price
+    except Exception:
+        return None
+
 def validate_username(username: str) -> bool:
     """اعتبارسنجی یوزرنیم اینستاگرام"""
     # یوزرنیم معتبر: حروف، اعداد، نقطه و آندرلاین

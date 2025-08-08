@@ -29,8 +29,4 @@ def upgrade():
 def downgrade():
     # Remove new pricing column
     op.drop_column('suppliers', 'pricing_data')
-    
-    # Restore old pricing columns
-    op.add_column('suppliers', sa.Column('price_range_min', sa.Float))
-    op.add_column('suppliers', sa.Column('price_range_max', sa.Float))
-    op.add_column('suppliers', sa.Column('price_unit', sa.String(20)))
+    # Note: old columns are not restored in this downgrade to avoid data loss complexity

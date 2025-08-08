@@ -1,4 +1,70 @@
-telegram_bot  | 2025-08-04 22:56:16,113 - __main__ - INFO - Bot started successfully!
-telegram_bot  | 2025-08-04 22:56:16,113 - aiogram.dispatcher - INFO - Start polling
-telegram_bot  | 2025-08-04 22:56:24,380 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
-telegram_bot  | 2025-08-04 22:56:37,634 - aiogram.event - INFO - Update id=196126705 is handled. Duration 283 ms by bot id=7613774476
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/app/main.py", line 14, in <module>
+telegram_bot  |     from handlers import start, supplier, demander
+telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
+telegram_bot  |     @router.message(DemanderMenu.searching)
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/app/main.py", line 14, in <module>
+telegram_bot  |     from handlers import start, supplier, demander
+telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
+telegram_bot  |     @router.message(DemanderMenu.searching)
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/app/main.py", line 14, in <module>
+telegram_bot  |     from handlers import start, supplier, demander
+telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
+telegram_bot  |     @router.message(DemanderMenu.searching)
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/app/main.py", line 14, in <module>
+telegram_bot  |     from handlers import start, supplier, demander
+telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
+telegram_bot  |     @router.message(DemanderMenu.searching)
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/app/main.py", line 14, in <module>
+telegram_bot  |     from handlers import start, supplier, demander
+telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
+telegram_bot  |     @router.message(DemanderMenu.searching)
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/app/main.py", line 14, in <module>
+telegram_bot  |     from handlers import start, supplier, demander
+telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
+telegram_bot  |     @router.message(DemanderMenu.searching)
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/app/main.py", line 14, in <module>
+telegram_bot  |     from handlers import start, supplier, demander
+telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
+telegram_bot  |     @router.message(DemanderMenu.searching)
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/app/main.py", line 14, in <module>
+telegram_bot  |     from handlers import start, supplier, demander
+telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
+telegram_bot  |     @router.message(DemanderMenu.searching)
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/app/main.py", line 14, in <module>
+telegram_bot  |     from handlers import start, supplier, demander
+telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
+telegram_bot  |     @router.message(DemanderMenu.searching)
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
+telegram_bot  | Traceback (most recent call last):
+telegram_bot  |   File "/app/main.py", line 14, in <module>
+telegram_bot  |     from handlers import start, supplier, demander
+telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
+telegram_bot  |     @router.message(DemanderMenu.searching)
+telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
+telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'

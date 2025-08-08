@@ -14,13 +14,28 @@ def format_pricing_data(pricing_data: dict) -> str:
         return "اطلاعات قیمت‌گذاری موجود نیست"
     
     formatted_lines = []
-    for style, prices in pricing_data.items():
-        style_text = f"سبک {style}:"
-        for price_type, amount in prices.items():
-            style_text += f"\n  {price_type}: {amount} تومان"
-        formatted_lines.append(style_text)
+    price_types_fa = {
+        "hourly": "ساعتی",
+        "daily": "روزانه",
+        "per_cloth": "به ازای هر لباس",
+    }
+
+    # انواع قیمت ساده
+    for p_type in ["daily", "hourly", "per_cloth"]:
+        if isinstance(pricing_data.get(p_type), (int, float)):
+            amount = int(pricing_data[p_type]) * 1000
+            formatted_lines.append(f"{price_types_fa[p_type]}: {amount:,.0f} تومان")
+
+    # قیمت‌های بر اساس سبک
+    category_prices = pricing_data.get("category_based")
+    if isinstance(category_prices, dict) and category_prices:
+        formatted_lines.append("قیمت‌گذاری بر اساس سبک:")
+        for style, price in category_prices.items():
+            if isinstance(price, (int, float)):
+                amount = int(price) * 1000
+                formatted_lines.append(f"  - سبک {style}: {amount:,.0f} تومان")
     
-    return "\n".join(formatted_lines)
+    return "\n".join(formatted_lines) if formatted_lines else "توافقی"
 
 from database.models import User, Supplier, UserRole, Request, RequestStatus
 from states.supplier import (
@@ -29,7 +44,7 @@ from states.supplier import (
 )
 from keyboards.reply import *
 from keyboards.inline import get_request_action_keyboard
-from utils.validators import validate_phone_number, validate_age, validate_height_weight
+from utils.validators import validate_phone_number, validate_age, validate_height_weight, validate_price
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
 # Constants for price types
@@ -59,21 +74,7 @@ def get_finish_upload_keyboard():
     )
     return keyboard
 
-def validate_price_range(text: str) -> tuple[int, int] | None:
-    """اعتبارسنجی محدوده قیمت (هزار تومان)"""
-    try:
-        # Remove any non-digit characters and split by any separator
-        numbers = re.findall(r'\d+', text)
-        if len(numbers) != 2:
-            return None
-        min_price = int(numbers[0])
-        max_price = int(numbers[1])
-        if min_price <= 0 or max_price <= 0 or min_price > max_price:
-            return None
-        return min_price, max_price
-    except:
-        return None
-    return keyboard
+## قیمت تکی جایگزین محدوده قیمت شده است؛ از validate_price در utils/validators استفاده می‌شود.
 
 
 def get_price_types_keyboard():
@@ -107,7 +108,7 @@ EDITABLE_FIELDS = {
     "سایز بالاتنه": "top_size",
     "سایز پایین‌تنه": "bottom_size",
     "ویژگی‌های خاص": "special_features",
-    "محدوده قیمت": "pricing_data",
+    "قیمت‌گذاری": "pricing_data",
     "شهر": "city",
     "محدوده فعالیت": "area",
     "انواع همکاری": "cooperation_types",
@@ -591,16 +592,15 @@ async def process_next_price_type(message: Message, state: FSMContext, current_t
         await process_next_style_price(message, state, selected_styles[0])
     else:
         await message.answer(
-            f"🔸 محدوده قیمت {price_names[current_type]} را وارد کنید (به هزار تومان):\n"
-            "مثال: 100 تا 300\n"
-            "(یعنی از 100 هزار تومان تا 300 هزار تومان)",
+            f"🔸 قیمت {price_names[current_type]} را وارد کنید (به هزار تومان):\n"
+            "مثال: 300",
             reply_markup=get_back_keyboard()
         )
         await state.set_state(SupplierRegistration.price_range)
 
 @router.message(SupplierRegistration.price_range)
 async def process_price_range(message: Message, state: FSMContext):
-    """پردازش محدوده قیمت"""
+    """پردازش قیمت تکی"""
     if message.text == "↩️ بازگشت":
         await state.set_state(SupplierRegistration.price_types)
         await message.answer(
@@ -609,11 +609,11 @@ async def process_price_range(message: Message, state: FSMContext):
         )
         return
     
-    price_range = validate_price_range(message.text)
-    if not price_range:
+    price_value = validate_price(message.text)
+    if price_value is None:
         await message.answer(
-            "لطفاً محدوده قیمت را به صورت صحیح وارد کنید:\n"
-            "مثال: 100 تا 300"
+            "لطفاً قیمت را به صورت صحیح وارد کنید:\n"
+            "مثال: 300"
         )
         return
     
@@ -622,8 +622,8 @@ async def process_price_range(message: Message, state: FSMContext):
     pricing_data = data.get('pricing_data', {})
     selected_types = data.get('selected_price_types', [])
     
-    # Store the price range for current type
-    pricing_data[current_type] = {"min": price_range[0], "max": price_range[1]}
+    # ذخیره قیمت تکی برای نوع فعلی
+    pricing_data[current_type] = price_value
     await state.update_data(pricing_data=pricing_data)
     
     # Find next price type to process
@@ -656,16 +656,15 @@ async def process_next_style_price(message: Message, state: FSMContext, current_
     
     await state.update_data(current_style=current_style)
     await message.answer(
-        f"🔸 محدوده قیمت برای سبک {style_names[current_style]} را وارد کنید (به هزار تومان):\n"
-        "مثال: 100 تا 300\n"
-        "(یعنی از 100 هزار تومان تا 300 هزار تومان)",
+        f"🔸 قیمت برای سبک {style_names[current_style]} را وارد کنید (به هزار تومان):\n"
+        "مثال: 300",
         reply_markup=get_back_keyboard()
     )
     await state.set_state(SupplierRegistration.style_price)
 
 @router.message(SupplierRegistration.style_price)
 async def process_style_price(message: Message, state: FSMContext):
-    """پردازش قیمت هر سبک"""
+    """پردازش قیمت هر سبک (قیمت تکی)"""
     if message.text == "↩️ بازگشت":
         await state.set_state(SupplierRegistration.price_types)
         await message.answer(
@@ -674,12 +673,11 @@ async def process_style_price(message: Message, state: FSMContext):
         )
         return
     
-    price_range = validate_price_range(message.text)
-    if not price_range:
+    price_value = validate_price(message.text)
+    if price_value is None:
         await message.answer(
             "❌ فرمت قیمت نامعتبر است.\n"
-            "لطفاً به این صورت وارد کنید: 100 تا 300\n"
-            "(یعنی از 100 هزار تومان تا 300 هزار تومان)"
+            "لطفاً به این صورت وارد کنید: 300"
         )
         return
 
@@ -688,16 +686,11 @@ async def process_style_price(message: Message, state: FSMContext):
     current_price_type = data.get('current_price_type')
     work_styles = data.get('work_styles', [])
     pricing_data = data.get('pricing_data', {})
-    
-    # Initialize pricing structure if needed
-    if current_style not in pricing_data:
-        pricing_data[current_style] = {}
-    
-    # Store the price range for current style and price type
-    pricing_data[current_style][current_price_type] = {
-        "min": price_range[0],
-        "max": price_range[1]
-    }
+    # اطمینان از وجود بخش دسته‌بندی
+    if 'category_based' not in pricing_data:
+        pricing_data['category_based'] = {}
+    # ذخیره قیمت تکی برای سبک فعلی
+    pricing_data['category_based'][current_style] = price_value
     await state.update_data(pricing_data=pricing_data)
     
     # Find next style to process
@@ -706,12 +699,7 @@ async def process_style_price(message: Message, state: FSMContext):
         next_style = work_styles[current_index + 1]
         await process_next_style_price(message, state, next_style)
     else:
-        # All styles processed for this price type, store in pricing_data
-        pricing_data["category_based"] = {
-            style: {"min": data.get("style_pricing", {}).get(style, {}).get("min", 0),
-                   "max": data.get("style_pricing", {}).get(style, {}).get("max", 0)}
-            for style in work_styles
-        }
+        # همه سبک‌ها ثبت شدند
         await state.update_data(pricing_data=pricing_data)
         
         # Check if there are more price types to process
@@ -733,11 +721,11 @@ async def process_style_price(message: Message, state: FSMContext):
             await state.set_state(SupplierRegistration.city)
         return
     
-    price_range = validate_price_range(message.text)
+    price_range = validate_price(message.text)  # سازگاری با جریان قبلی؛ هرگز استفاده نمی‌شود
     if not price_range:
         await message.answer(
-            "لطفاً محدوده قیمت را به صورت صحیح وارد کنید:\n"
-            "مثال: 100 تا 300"
+            "لطفاً قیمت را به صورت صحیح وارد کنید:\n"
+            "مثال: 300"
         )
         return
 
@@ -909,7 +897,7 @@ async def process_work_styles(message: Message, state: FSMContext):
             await message.answer(
                 "حالا اطلاعات قیمت‌گذاری خود را وارد کنید.\n\n"
                 "🔸 نحوه قیمت‌گذاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
-                "برای هر کدام از موارد انتخابی در مرحله بعد محدوده قیمت دریافت خواهد شد.",
+                "برای هر کدام از موارد انتخابی در مرحله بعد قیمت دریافت خواهد شد.",
                 reply_markup=get_price_types_keyboard()
             )
             await state.set_state(SupplierRegistration.price_types)
@@ -1076,30 +1064,22 @@ async def process_confirmation(message: Message, state: FSMContext, session: Asy
             # Create clean pricing structure
             clean_pricing_data = {}
             
-            # Handle regular price types
+            # Handle regular price types (single integer price in thousands)
             for price_type in ['hourly', 'daily', 'per_cloth']:
                 if price_type in selected_price_types and price_type in raw_pricing_data:
-                    clean_pricing_data[price_type] = {
-                        "min": raw_pricing_data[price_type].get('min', 0),
-                        "max": raw_pricing_data[price_type].get('max', 0)
-                    }
+                    value = raw_pricing_data.get(price_type)
+                    if isinstance(value, (int, float)):
+                        clean_pricing_data[price_type] = int(value)
             
-            # Handle category-based pricing
+            # Handle category-based pricing (single integer per style)
             if 'category_based' in selected_price_types:
                 clean_pricing_data['category_based'] = {}
                 for style in work_styles:
-                    # Get the price from the correct location in raw data
                     style_price = None
-                    if style in raw_pricing_data and 'category_based' in raw_pricing_data[style]:
-                        style_price = raw_pricing_data[style]['category_based']
-                    elif 'category_based' in raw_pricing_data and style in raw_pricing_data['category_based']:
+                    if 'category_based' in raw_pricing_data and style in raw_pricing_data['category_based']:
                         style_price = raw_pricing_data['category_based'][style]
-                    
-                    if style_price:
-                        clean_pricing_data['category_based'][style] = {
-                            "min": style_price.get('min', 0),
-                            "max": style_price.get('max', 0)
-                        }
+                    if isinstance(style_price, (int, float)):
+                        clean_pricing_data['category_based'][style] = int(style_price)
             
             # Update the data with clean pricing structure
             data['pricing_data'] = clean_pricing_data
@@ -1434,7 +1414,7 @@ async def edit_profile_choose_field(message: Message, state: FSMContext, session
         )
         await message.answer(
             "🔸 نحوه قیمت‌گذاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
-            "برای هر کدام از موارد انتخابی در مرحله بعد محدوده قیمت دریافت خواهد شد.",
+            "برای هر کدام از موارد انتخابی در مرحله بعد قیمت دریافت خواهد شد.",
             reply_markup=get_price_types_keyboard()
         )
         await state.set_state(SupplierRegistration.price_types)
@@ -1499,7 +1479,7 @@ async def edit_profile_enter_value(message: Message, state: FSMContext, session:
         )
         await message.answer(
             "🔸 نحوه قیمت‌گذاری مورد نظر خود را انتخاب کنید (می‌توانید چند مورد انتخاب کنید):\n\n"
-            "برای هر کدام از موارد انتخابی در مرحله بعد محدوده قیمت دریافت خواهد شد.",
+            "برای هر کدام از موارد انتخابی در مرحله بعد قیمت دریافت خواهد شد.",
             reply_markup=get_price_types_keyboard()
         )
         await state.set_state(SupplierRegistration.price_types)
@@ -1850,7 +1830,7 @@ def create_supplier_summary(data: dict) -> str:
 ویژگی خاص: {data.get('special_features', '-')}
 
 💼 اطلاعات همکاری:
-محدوده‌های قیمت:
+قیمت‌ها:
 {format_pricing_data(data.get('pricing_data', {}))}
 شهر: {data.get('city', '-')}
 محدوده: {data.get('area', '-')}
@@ -1924,35 +1904,27 @@ def extract_price_unit(price_range: str) -> str:
     return 'project'
 
 def format_price_range(supplier: Supplier) -> str:
-    """فرمت کامل محدوده قیمت"""
+    """فرمت قیمت (قیمت‌های تکی و دسته‌بندی)"""
     if not supplier.pricing_data:
-        return "اطلاعات قیمت‌گذاری موجود نیست"
+        return "قیمت توافقی"
 
-    formatted_lines = []
+    lines: list[str] = []
     price_types_fa = {
         "hourly": "ساعتی",
         "daily": "روزانه",
-        "per_cloth": "به ازای هر لباس"
+        "per_cloth": "به ازای هر لباس",
     }
 
-    for price_type, data in supplier.pricing_data.items():
-        if price_type == "category_based":
-            if isinstance(data, dict) and data:
-                formatted_lines.append("قیمت‌گذاری بر اساس سبک:")
-                for style, price in data.items():
-                    style_price = f"  - سبک {style}: "
-                    if isinstance(price, dict) and "min" in price and "max" in price:
-                        min_p = price['min'] * 1000
-                        max_p = price['max'] * 1000
-                        style_price += f"{min_p:,.0f} تا {max_p:,.0f} تومان"
-                    formatted_lines.append(style_price)
-        else:
-            if price_type in price_types_fa and isinstance(data, dict):
-                price_line = f"{price_types_fa[price_type]}: "
-                if "min" in data and "max" in data:
-                    min_p = data['min'] * 1000
-                    max_p = data['max'] * 1000
-                    price_line += f"{min_p:,.0f} تا {max_p:,.0f} تومان"
-                formatted_lines.append(price_line)
+    for p_type in ["daily", "hourly", "per_cloth"]:
+        value = supplier.pricing_data.get(p_type)
+        if isinstance(value, (int, float)):
+            lines.append(f"{price_types_fa[p_type]}: {int(value)*1000:,.0f} تومان")
 
-    return "\n".join(formatted_lines) if formatted_lines else "قیمت توافقی"
+    category_prices = supplier.pricing_data.get("category_based")
+    if isinstance(category_prices, dict) and category_prices:
+        lines.append("قیمت‌گذاری بر اساس سبک:")
+        for style, price in category_prices.items():
+            if isinstance(price, (int, float)):
+                lines.append(f"  - سبک {style}: {int(price)*1000:,.0f} تومان")
+
+    return "\n".join(lines) if lines else "قیمت توافقی"

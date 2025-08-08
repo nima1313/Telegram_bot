@@ -132,38 +132,30 @@ async def cmd_profile(message: Message, session: AsyncSession):
     )
 
 def format_price_for_profile(supplier):
-    """فرمت قیمت برای نمایش در پروفایل"""
+    """فرمت قیمت برای نمایش در پروفایل (قیمت تکی)"""
     if not supplier.pricing_data:
         return "توافقی"
 
-    # Try to find a daily or hourly price to show
-    price_info = None
+    display_price: int | None = None
     unit = ""
-    if 'daily' in supplier.pricing_data and isinstance(supplier.pricing_data.get('daily'), dict):
-        price_info = supplier.pricing_data['daily']
+    if 'daily' in supplier.pricing_data and isinstance(supplier.pricing_data.get('daily'), (int, float)):
+        display_price = int(supplier.pricing_data['daily'])
         unit = "روزی"
-    elif 'hourly' in supplier.pricing_data and isinstance(supplier.pricing_data.get('hourly'), dict):
-        price_info = supplier.pricing_data['hourly']
+    elif 'hourly' in supplier.pricing_data and isinstance(supplier.pricing_data.get('hourly'), (int, float)):
+        display_price = int(supplier.pricing_data['hourly'])
         unit = "ساعتی"
-    
-    if not price_info:
-        # If no daily/hourly, find the first available price
+    else:
         for p_type, p_info in supplier.pricing_data.items():
-            if p_type != 'category_based' and isinstance(p_info, dict):
-                price_info = p_info
+            if p_type != 'category_based' and isinstance(p_info, (int, float)):
+                display_price = int(p_info)
                 unit = {'per_cloth': 'هر لباس'}.get(p_type, 'توافقی')
                 break
 
-    if not price_info:
+    if display_price is None:
         return "توافقی"
 
-    min_price = price_info.get('min', 0) * 1000
-    max_price = price_info.get('max', 0) * 1000
-
-    if min_price == max_price:
-        return f"{unit} {min_price:,.0f} تومان"
-    else:
-        return f"{unit} {min_price:,.0f} تا {max_price:,.0f} تومان"
+    amount = display_price * 1000
+    return f"{unit} {amount:,.0f} تومان".strip()
 
 # مدیریت درخواست‌ها
 @router.message(F.text == "📥 درخواست‌های من")

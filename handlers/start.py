@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+import inspect
 
 from database.models import User, UserRole
 from keyboards.reply import get_main_menu, get_back_keyboard
@@ -22,26 +23,32 @@ async def cmd_start(message: Message, state: FSMContext, session: AsyncSession):
     stmt = select(User).where(User.telegram_id == str(message.from_user.id))
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
-    
+    if inspect.isawaitable(user):
+        user = await user
+
     if user:
         # کاربر قبلاً ثبت‌نام کرده
         if user.role == UserRole.SUPPLIER:
-            await message.answer(
+            _resp = message.answer(
                 f"سلام {message.from_user.full_name} عزیز! 👋\n"
                 "شما قبلاً به عنوان تأمین‌کننده ثبت‌نام کرده‌اید.\n"
                 "از منوی زیر گزینه مورد نظر را انتخاب کنید:",
                 reply_markup=get_main_menu()
             )
+            if inspect.isawaitable(_resp):
+                await _resp
         else:
-            await message.answer(
+            _resp = message.answer(
                 f"سلام {message.from_user.full_name} عزیز! 👋\n"
                 "شما قبلاً به عنوان درخواست‌کننده ثبت‌نام کرده‌اید.\n"
                 "از منوی زیر گزینه مورد نظر را انتخاب کنید:",
                 reply_markup=get_main_menu()
             )
+            if inspect.isawaitable(_resp):
+                await _resp
     else:
         # کاربر جدید
-        await message.answer(
+        _resp = message.answer(
             f"سلام {message.from_user.full_name} عزیز! 👋\n\n"
             "به ربات مدیریت مدل‌ها و عکاسان خوش آمدید.\n\n"
             "لطفاً نقش خود را انتخاب کنید:\n"
@@ -49,6 +56,8 @@ async def cmd_start(message: Message, state: FSMContext, session: AsyncSession):
             "🔍 درخواست‌کننده: اگر به دنبال مدل یا عکاس هستید",
             reply_markup=get_main_menu()
         )
+        if inspect.isawaitable(_resp):
+            await _resp
 
 @router.message(F.text == "🎭 تأمین‌کننده")
 async def select_supplier_role(message: Message, state: FSMContext, session: AsyncSession):
@@ -57,6 +66,8 @@ async def select_supplier_role(message: Message, state: FSMContext, session: Asy
     stmt = select(User).options(selectinload(User.supplier_profile)).where(User.telegram_id == str(message.from_user.id))
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
+    if inspect.isawaitable(user):
+        user = await user
     
     if user and user.supplier_profile:
         # کاربر قبلاً پروفایل تأمین‌کننده دارد
@@ -64,11 +75,13 @@ async def select_supplier_role(message: Message, state: FSMContext, session: Asy
         await show_supplier_menu(message, state, session)
     else:
         # شروع فرآیند ثبت‌نام
-        await message.answer(
+        _resp = message.answer(
             "عالی! برای ثبت‌نام به عنوان تأمین‌کننده، لطفاً اطلاعات خود را وارد کنید.\n\n"
             "🔸 نام و نام خانوادگی خود را وارد کنید:",
             reply_markup=get_back_keyboard()
         )
+        if inspect.isawaitable(_resp):
+            await _resp
         await state.set_state(SupplierRegistration.full_name)
 
 @router.message(F.text == "🔍 درخواست‌کننده")
@@ -78,6 +91,8 @@ async def select_demander_role(message: Message, state: FSMContext, session: Asy
     stmt = select(User).options(selectinload(User.demander_profile)).where(User.telegram_id == str(message.from_user.id))
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
+    if inspect.isawaitable(user):
+        user = await user
     
     if user and user.demander_profile:
         # کاربر قبلاً پروفایل درخواست‌کننده دارد - به منوی درخواست‌کننده هدایت کنیم

@@ -30,6 +30,7 @@ class DemanderRegistration(StatesGroup):
 class DemanderMenu(StatesGroup):
     """منوی اصلی درخواست‌کننده"""
     main_menu = State()
+    searching = State()
 
 class DemanderEditProfile(StatesGroup):
     """فرآیند ویرایش پروفایل درخواست‌کننده"""

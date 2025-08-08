@@ -10,6 +10,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - elasticsearch
     volumes:
       - ./logs:/app/logs
     networks:
@@ -39,6 +40,27 @@ services:
     networks:
       - bot_network
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.0
+    container_name: bot_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - bot_network
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: bot_pgadmin
@@ -55,6 +77,7 @@ services:
 
 volumes:
   postgres_data:
+  es_data:
 
 networks:
   bot_network:

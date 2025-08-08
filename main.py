@@ -14,6 +14,7 @@ from middlewares.database import DatabaseMiddleware
 from handlers import start, supplier, demander
 from database.models import Base
 from database.connection import engine
+from search.suppliers_index import init_elastic_indexing, close_elastic
 
 # تنظیم لاگینگ
 logging.basicConfig(
@@ -27,11 +28,14 @@ async def on_startup(bot: Bot):
     # ایجاد جداول دیتابیس
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    # ایجاد ایندکس‌های الاستیک و راه‌اندازی همگام‌سازی
+    await init_elastic_indexing()
     
     logger.info("Bot started successfully!")
 
 async def on_shutdown(bot: Bot):
     """عملیات هنگام خاموش شدن ربات"""
+    await close_elastic()
     logger.info("Bot shutting down...")
 
 async def main():

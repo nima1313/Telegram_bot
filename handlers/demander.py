@@ -15,6 +15,7 @@ from keyboards.reply import (
     get_skip_keyboard,
     get_confirm_keyboard,
     get_main_menu,
+    get_price_range_keyboard,
 )
 from keyboards.demander import (
     get_demander_menu_keyboard,
@@ -493,8 +494,62 @@ async def edit_profile_enter_value(message: Message, state: FSMContext, session:
 
 @router.message(F.text == "🔍 جست‌جوی تأمین‌کننده", DemanderMenu.main_menu)
 async def search_suppliers(message: Message, state: FSMContext):
-    """جست‌جوی تأمین‌کننده - نسخه آتی"""
-    await message.answer("🔍 قابلیت جست‌جوی تأمین‌کننده به زودی اضافه خواهد شد.")
+    """جست‌جوی تأمین‌کننده با فیلتر قیمت ساده"""
+    await state.update_data(search_filters={})
+    await message.answer(
+        "🔎 یک بازه قیمت انتخاب کنید (بر اساس قیمت روزانه، به هزار تومان):",
+        reply_markup=get_price_range_keyboard(),
+    )
+    await state.set_state(DemanderMenu.searching)
+
+@router.message(DemanderMenu.searching)
+async def handle_search_filters(message: Message, state: FSMContext):
+    data = await state.get_data()
+    filters = data.get("search_filters", {})
+
+    if message.text == "↩️ بازگشت":
+        await state.set_state(DemanderMenu.main_menu)
+        await message.answer("به منو برگشتید.")
+        return
+
+    ranges_map = {
+        "💰 زیر ۵۰۰ هزار تومان": {"lte": 500},
+        "💰 ۵۰۰ هزار - ۱ میلیون": {"gte": 500, "lte": 1000},
+        "💰 ۱ - ۲ میلیون": {"gte": 1000, "lte": 2000},
+        "💰 بالای ۲ میلیون": {"gte": 2000},
+        "🤷 مهم نیست": None,
+    }
+    price_range = ranges_map.get(message.text)
+    if message.text not in ranges_map:
+        await message.answer("لطفاً یک گزینه معتبر انتخاب کنید.", reply_markup=get_price_range_keyboard())
+        return
+
+    # We'll filter on ES field price_daily
+    if price_range is not None:
+        filters["price_daily"] = price_range
+
+    await state.update_data(search_filters=filters)
+
+    # Execute ES search
+    from search.suppliers_index import search_suppliers as es_search
+    res = await es_search(query=None, filters=filters, from_=0, size=5)
+    hits = res.get("hits", {}).get("hits", [])
+    if not hits:
+        await message.answer("نتیجه‌ای یافت نشد.")
+        await state.set_state(DemanderMenu.main_menu)
+        return
+
+    text = "نتایج:"
+    for i, h in enumerate(hits, 1):
+        src = h.get("_source", {})
+        name = src.get("full_name", "بدون نام")
+        city = src.get("city", "-")
+        price = src.get("price_daily")
+        price_text = f"{int(price)*1000:,.0f} تومان" if isinstance(price, (int, float)) else "توافقی"
+        text += f"\n{i}. {name} - {city} - روزانه: {price_text}"
+
+    await message.answer(text)
+    await state.set_state(DemanderMenu.main_menu)
 
 @router.message(F.text == "📄 وضعیت درخواست‌ها", DemanderMenu.main_menu)
 async def view_request_status(message: Message, state: FSMContext):
