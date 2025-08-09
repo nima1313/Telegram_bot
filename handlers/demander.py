@@ -1154,45 +1154,28 @@ async def show_search_result(message: Message, state: FSMContext, result_index: 
     # Send profile picture if available
     portfolio_photos = supplier_data.get("portfolio_photos", [])
     if portfolio_photos:
-        # Send first photo with caption and keyboard, then up to one more photo without caption
-        first_photo = portfolio_photos[0]
-        logging.info(f"Trying to send first photo with ID/path: {first_photo}")
-        sent = False
+        # Send all photos in a single media group (up to 10 as per Telegram limits)
         try:
-            await message.answer_photo(
-                photo=first_photo,
-                caption=profile_text,
-                reply_markup=keyboard,
-                parse_mode="Markdown"
-            )
-            sent = True
-        except Exception as e:
-            logging.error(f"Failed to send first photo by file ID: {e}")
-            if os.path.exists(first_photo):
-                try:
-                    await message.answer_photo(
-                        photo=FSInputFile(first_photo),
-                        caption=profile_text,
-                        reply_markup=keyboard,
-                        parse_mode="Markdown"
-                    )
-                    sent = True
-                except Exception as e2:
-                    logging.error(f"Failed to send first photo by path: {e2}")
-        # Optionally send second photo
-        if len(portfolio_photos) > 1:
-            second_photo = portfolio_photos[1]
-            try:
-                await message.answer_photo(photo=second_photo)
-            except Exception as e:
-                logging.warning(f"Failed to send second photo by ID, trying path. Error: {e}")
-                if os.path.exists(second_photo):
-                    try:
-                        await message.answer_photo(photo=FSInputFile(second_photo))
-                    except Exception as e2:
-                        logging.error(f"Failed to send second photo by path: {e2}")
-        if sent:
+            photos = portfolio_photos[:10]
+            media = []
+            for i, photo in enumerate(photos):
+                # Build media item; support both Telegram file IDs and local paths
+                media_obj = None
+                if os.path.exists(photo):
+                    media_obj = InputMediaPhoto(media=FSInputFile(photo))
+                else:
+                    media_obj = InputMediaPhoto(media=photo)
+                # Put caption on the last item
+                if i == len(photos) - 1:
+                    media_obj.caption = profile_text
+                media.append(media_obj)
+            await message.answer_media_group(media=media)
+            # Send keyboard in a follow-up message (sendMediaGroup cannot attach reply_markup)
+            await message.answer("گزینه‌ها:", reply_markup=keyboard)
             return
+        except Exception as e:
+            logging.error(f"Failed to send media group: {e}")
+            # Fallback to text-only below
     
     # Send text-only message if no photo or photo failed
     await message.answer(
