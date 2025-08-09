@@ -980,7 +980,7 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
             min_should_match=min_should,
             sort=None,
         )
-        hits = res.get("hits", {}).get("hits", [])
+    hits = res.get("hits", {}).get("hits", [])
     except Exception as e:
         # Import ApiError here to avoid circular dependency issues if it were global
         from elasticsearch import ApiError
@@ -1079,13 +1079,58 @@ async def show_search_result(message: Message, state: FSMContext, result_index: 
         return
     
     result = results[result_index]
-    # Normalize result format (handle both ES hits format and fallback format)
+    # Get supplier ID from search results
     if "_source" in result:
-        supplier_data = result["_source"]
         supplier_id = result["_id"]
     else:
-        supplier_data = result
         supplier_id = result.get("id")
+    
+    # Get complete supplier data from PostgreSQL using the ID
+    try:
+        supplier_id_int = int(supplier_id)
+        from sqlalchemy.orm import selectinload
+        async for session in get_session():
+            stmt = select(Supplier).options(selectinload(Supplier.user)).where(Supplier.id == supplier_id_int)
+            supplier_result = await session.execute(stmt)
+            supplier = supplier_result.scalar_one_or_none()
+            
+            if not supplier:
+                await message.answer("خطا در بارگذاری اطلاعات تأمین‌کننده.")
+                return
+            
+            # Convert supplier object to dict for the display function
+            supplier_data = {
+                "full_name": supplier.full_name,
+                "gender": supplier.gender,
+                "age": supplier.age,
+                "phone_number": supplier.phone_number,
+                "instagram_id": supplier.instagram_id,
+                "height": supplier.height,
+                "weight": supplier.weight,
+                "hair_color": supplier.hair_color,
+                "eye_color": supplier.eye_color,
+                "skin_color": supplier.skin_color,
+                "top_size": supplier.top_size,
+                "bottom_size": supplier.bottom_size,
+                "special_features": supplier.special_features,
+                "pricing_data": supplier.pricing_data,
+                "city": supplier.city,
+                "area": supplier.area,
+                "cooperation_types": supplier.cooperation_types,
+                "work_styles": supplier.work_styles,
+                "brand_experience": supplier.brand_experience,
+                "additional_notes": supplier.additional_notes,
+                "portfolio_photos": supplier.portfolio_photos,
+            }
+            break
+    except (ValueError, TypeError) as e:
+        logging.error(f"Error converting supplier_id to int: {e}")
+        await message.answer("خطا در شناسایی تأمین‌کننده.")
+        return
+    except Exception as e:
+        logging.error(f"Error fetching supplier data: {e}")
+        await message.answer("خطا در بارگذاری اطلاعات تأمین‌کننده.")
+        return
     
     # Create detailed profile text
     profile_text = create_supplier_detail_text(supplier_data, result_index, len(results))

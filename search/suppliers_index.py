@@ -330,13 +330,8 @@ async def search_suppliers(
         "query": {"bool": bool_query},
         "from": from_,
         "size": size,
-        # Return only fields needed by the bot to reduce load
-        "_source": [
-            "full_name",
-            "city",
-            "work_styles",
-            "price_daily",
-        ],
+        # Only return basic fields since we'll fetch complete data from PostgreSQL
+        "_source": False,  # We only need the document IDs
     }
 
     if sort:

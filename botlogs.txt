@@ -21,3 +21,175 @@ telegram_bot  | 2025-08-09 09:57:18,040 - aiogram.event - INFO - Update id=19612
 telegram_bot  | 2025-08-09 09:57:18,648 - elastic_transport.transport - INFO - POST http://elasticsearch:9200/suppliers/_search?request_cache=true [status:200 duration:0.055s]
 telegram_bot  | 2025-08-09 09:57:18,818 - aiogram.event - INFO - Update id=196127283 is handled. Duration 264 ms by bot id=7613774476
 telegram_bot  | 2025-08-09 09:57:19,338 - aiogram.event - INFO - Update id=196127284 is not handled. Duration 5 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:13:05,084 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/suppliers [status:404 duration:0.008s]
+telegram_bot  | 2025-08-09 13:13:05,281 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/suppliers [status:200 duration:0.196s]
+telegram_bot  | 2025-08-09 13:13:05,281 - __main__ - INFO - Bot started successfully!
+telegram_bot  | 2025-08-09 13:13:05,281 - aiogram.dispatcher - INFO - Start polling
+telegram_bot  | 2025-08-09 13:13:05,388 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-09 13:16:37,553 - aiogram.event - INFO - Update id=196127642 is handled. Duration 762 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:16:53,740 - aiogram.event - INFO - Update id=196127643 is handled. Duration 291 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:16:58,337 - aiogram.event - INFO - Update id=196127644 is handled. Duration 131 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:16:59,515 - aiogram.event - INFO - Update id=196127645 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:01,857 - aiogram.event - INFO - Update id=196127646 is handled. Duration 191 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:05,317 - aiogram.event - INFO - Update id=196127647 is handled. Duration 143 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:06,482 - aiogram.event - INFO - Update id=196127648 is handled. Duration 260 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:17,397 - aiogram.event - INFO - Update id=196127649 is handled. Duration 160 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:39,222 - aiogram.event - INFO - Update id=196127650 is handled. Duration 494 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:40,998 - aiogram.event - INFO - Update id=196127651 is handled. Duration 131 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:43,162 - aiogram.event - INFO - Update id=196127652 is handled. Duration 126 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:45,601 - aiogram.event - INFO - Update id=196127653 is handled. Duration 140 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:47,672 - aiogram.event - INFO - Update id=196127654 is handled. Duration 130 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:50,122 - aiogram.event - INFO - Update id=196127655 is handled. Duration 123 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:52,309 - aiogram.event - INFO - Update id=196127656 is handled. Duration 160 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:55,938 - aiogram.event - INFO - Update id=196127657 is handled. Duration 148 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:17:56,923 - aiogram.event - INFO - Update id=196127658 is handled. Duration 132 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:03,639 - aiogram.event - INFO - Update id=196127659 is handled. Duration 177 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:07,030 - aiogram.event - INFO - Update id=196127660 is handled. Duration 133 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:08,123 - aiogram.event - INFO - Update id=196127661 is handled. Duration 253 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:10,172 - aiogram.event - INFO - Update id=196127662 is handled. Duration 302 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:10,727 - aiogram.event - INFO - Update id=196127663 is handled. Duration 138 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:11,754 - aiogram.event - INFO - Update id=196127664 is handled. Duration 149 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:12,480 - aiogram.event - INFO - Update id=196127665 is handled. Duration 202 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:13,961 - aiogram.event - INFO - Update id=196127666 is handled. Duration 265 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:15,431 - aiogram.event - INFO - Update id=196127667 is handled. Duration 339 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:16,520 - aiogram.event - INFO - Update id=196127668 is handled. Duration 392 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:18,671 - aiogram.event - INFO - Update id=196127669 is handled. Duration 290 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:20,712 - aiogram.event - INFO - Update id=196127670 is handled. Duration 224 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:23,308 - aiogram.event - INFO - Update id=196127671 is handled. Duration 136 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:24,918 - aiogram.event - INFO - Update id=196127672 is handled. Duration 161 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:26,249 - aiogram.event - INFO - Update id=196127673 is handled. Duration 245 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:27,729 - aiogram.event - INFO - Update id=196127674 is handled. Duration 148 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:28,944 - aiogram.event - INFO - Update id=196127675 is handled. Duration 135 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:30,682 - aiogram.event - INFO - Update id=196127676 is handled. Duration 147 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:33,033 - aiogram.event - INFO - Update id=196127677 is handled. Duration 331 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:35,105 - aiogram.event - INFO - Update id=196127678 is handled. Duration 255 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:37,000 - aiogram.event - INFO - Update id=196127679 is handled. Duration 176 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:37,664 - aiogram.event - INFO - Update id=196127680 is handled. Duration 151 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:38,874 - aiogram.event - INFO - Update id=196127681 is handled. Duration 132 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:18:43,335 - aiogram.event - INFO - Update id=196127682 is handled. Duration 208 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:03,360 - aiogram.event - INFO - Update id=196127683 is handled. Duration 550 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:05,516 - root - INFO - Cleaned pricing data structure:
+telegram_bot  | 2025-08-09 13:19:05,516 - root - INFO - {
+telegram_bot  |   "daily": 300,
+telegram_bot  |   "category_based": {
+telegram_bot  |     "advertising": 10,
+telegram_bot  |     "fashion": 20,
+telegram_bot  |     "artistic": 40,
+telegram_bot  |     "sports": 20,
+telegram_bot  |     "studio": 50,
+telegram_bot  |     "outdoor": 10
+telegram_bot  |   }
+telegram_bot  | }
+telegram_bot  | 2025-08-09 13:19:05,679 - aiogram.event - INFO - Update id=196127684 is handled. Duration 168 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:05,734 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/suppliers/_doc/1?refresh=false [status:201 duration:0.185s]
+telegram_bot  | 2025-08-09 13:19:22,275 - aiogram.event - INFO - Update id=196127685 is handled. Duration 320 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:24,570 - aiogram.event - INFO - Update id=196127686 is handled. Duration 119 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:26,513 - aiogram.event - INFO - Update id=196127687 is handled. Duration 116 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:27,382 - aiogram.event - INFO - Update id=196127688 is handled. Duration 120 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:32,707 - aiogram.event - INFO - Update id=196127689 is handled. Duration 230 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:41,021 - aiogram.event - INFO - Update id=196127690 is handled. Duration 140 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:49,501 - aiogram.event - INFO - Update id=196127691 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:50,875 - aiogram.event - INFO - Update id=196127692 is handled. Duration 238 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:55,010 - aiogram.event - INFO - Update id=196127693 is handled. Duration 184 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:19:56,663 - aiogram.event - INFO - Update id=196127694 is handled. Duration 198 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:15,073 - aiogram.event - INFO - Update id=196127695 is handled. Duration 279 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:17,587 - aiogram.event - INFO - Update id=196127696 is handled. Duration 174 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:20,119 - aiogram.event - INFO - Update id=196127697 is handled. Duration 241 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:22,269 - aiogram.event - INFO - Update id=196127698 is handled. Duration 180 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:22,986 - aiogram.event - INFO - Update id=196127699 is handled. Duration 205 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:24,472 - aiogram.event - INFO - Update id=196127700 is handled. Duration 154 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:25,648 - aiogram.event - INFO - Update id=196127701 is handled. Duration 164 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:28,004 - aiogram.event - INFO - Update id=196127702 is handled. Duration 237 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:29,488 - aiogram.event - INFO - Update id=196127703 is handled. Duration 152 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:32,858 - aiogram.event - INFO - Update id=196127704 is handled. Duration 278 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:34,250 - aiogram.event - INFO - Update id=196127705 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:40,333 - aiogram.event - INFO - Update id=196127706 is handled. Duration 143 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:46,822 - aiogram.event - INFO - Update id=196127707 is handled. Duration 145 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:20:58,463 - aiogram.event - INFO - Update id=196127708 is handled. Duration 148 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:21:00,128 - aiogram.event - INFO - Update id=196127709 is handled. Duration 174 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:21:01,502 - aiogram.event - INFO - Update id=196127710 is handled. Duration 143 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:21:08,170 - aiogram.event - INFO - Update id=196127711 is handled. Duration 331 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:21:08,748 - aiogram.event - INFO - Update id=196127712 is handled. Duration 245 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:21:09,579 - aiogram.event - INFO - Update id=196127713 is handled. Duration 251 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:21:10,331 - aiogram.event - INFO - Update id=196127714 is handled. Duration 174 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:21:11,509 - elastic_transport.transport - INFO - POST http://elasticsearch:9200/suppliers/_search?request_cache=true [status:200 duration:0.391s]
+telegram_bot  | 2025-08-09 13:21:11,731 - aiogram.event - INFO - Update id=196127715 is handled. Duration 725 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:22:35,336 - aiogram.event - INFO - Update id=196127716 is handled. Duration 620 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:22:38,398 - aiogram.event - INFO - Update id=196127717 is handled. Duration 440 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:22:50,148 - aiogram.event - INFO - Update id=196127718 is handled. Duration 420 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:31:42,160 - aiogram.dispatcher - WARNING - Received SIGTERM signal
+telegram_bot  | 2025-08-09 13:31:42,163 - aiogram.dispatcher - INFO - Polling stopped for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-09 13:31:42,164 - aiogram.dispatcher - INFO - Polling stopped
+telegram_bot  | 2025-08-09 13:31:42,165 - __main__ - INFO - Bot shutting down...
+telegram_bot  | 2025-08-09 13:31:47,948 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/suppliers [status:200 duration:0.070s]
+telegram_bot  | 2025-08-09 13:31:47,959 - __main__ - INFO - Bot started successfully!
+telegram_bot  | 2025-08-09 13:31:47,959 - aiogram.dispatcher - INFO - Start polling
+telegram_bot  | 2025-08-09 13:31:48,066 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-09 13:32:41,276 - aiogram.dispatcher - WARNING - Received SIGTERM signal
+telegram_bot  | 2025-08-09 13:32:41,278 - aiogram.dispatcher - INFO - Polling stopped for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-09 13:32:41,279 - aiogram.dispatcher - INFO - Polling stopped
+telegram_bot  | 2025-08-09 13:32:41,279 - __main__ - INFO - Bot shutting down...
+telegram_bot  | 2025-08-09 13:32:45,466 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/suppliers [status:200 duration:0.005s]
+telegram_bot  | 2025-08-09 13:32:45,467 - __main__ - INFO - Bot started successfully!
+telegram_bot  | 2025-08-09 13:32:45,467 - aiogram.dispatcher - INFO - Start polling
+telegram_bot  | 2025-08-09 13:32:45,566 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-09 13:33:03,834 - aiogram.dispatcher - WARNING - Received SIGTERM signal
+telegram_bot  | 2025-08-09 13:33:03,841 - aiogram.dispatcher - INFO - Polling stopped for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-09 13:33:03,841 - aiogram.dispatcher - INFO - Polling stopped
+telegram_bot  | 2025-08-09 13:33:03,841 - __main__ - INFO - Bot shutting down...
+telegram_bot  | 2025-08-09 13:33:08,044 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/suppliers [status:200 duration:0.006s]
+telegram_bot  | 2025-08-09 13:33:08,045 - __main__ - INFO - Bot started successfully!
+telegram_bot  | 2025-08-09 13:33:08,045 - aiogram.dispatcher - INFO - Start polling
+telegram_bot  | 2025-08-09 13:33:08,146 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-09 13:33:50,899 - aiogram.event - INFO - Update id=196127719 is handled. Duration 412 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:33:52,203 - aiogram.event - INFO - Update id=196127720 is handled. Duration 178 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:06,321 - aiogram.event - INFO - Update id=196127721 is handled. Duration 208 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:06,899 - aiogram.event - INFO - Update id=196127722 is handled. Duration 197 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:07,192 - aiogram.event - INFO - Update id=196127723 is handled. Duration 197 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:08,258 - aiogram.event - INFO - Update id=196127724 is handled. Duration 164 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:08,494 - aiogram.event - INFO - Update id=196127725 is handled. Duration 302 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:09,341 - aiogram.event - INFO - Update id=196127726 is handled. Duration 298 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:10,929 - aiogram.event - INFO - Update id=196127727 is handled. Duration 139 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:12,129 - aiogram.event - INFO - Update id=196127728 is handled. Duration 236 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:13,137 - aiogram.event - INFO - Update id=196127729 is handled. Duration 188 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:14,415 - aiogram.event - INFO - Update id=196127730 is handled. Duration 238 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:15,202 - aiogram.event - INFO - Update id=196127731 is handled. Duration 253 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:16,128 - aiogram.event - INFO - Update id=196127732 is handled. Duration 177 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:16,745 - aiogram.event - INFO - Update id=196127733 is handled. Duration 141 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:17,658 - aiogram.event - INFO - Update id=196127734 is handled. Duration 216 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:18,497 - aiogram.event - INFO - Update id=196127735 is handled. Duration 134 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:19,437 - aiogram.event - INFO - Update id=196127736 is handled. Duration 139 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:20,447 - aiogram.event - INFO - Update id=196127737 is handled. Duration 229 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:21,455 - aiogram.event - INFO - Update id=196127738 is handled. Duration 132 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:34:22,509 - elastic_transport.transport - INFO - POST http://elasticsearch:9200/suppliers/_search?request_cache=true [status:200 duration:0.029s]
+telegram_bot  | 2025-08-09 13:34:22,779 - aiogram.event - INFO - Update id=196127739 is handled. Duration 374 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:36:52,979 - aiogram.dispatcher - WARNING - Received SIGTERM signal
+telegram_bot  | 2025-08-09 13:36:52,985 - aiogram.dispatcher - INFO - Polling stopped for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-09 13:36:52,986 - aiogram.dispatcher - INFO - Polling stopped
+telegram_bot  | 2025-08-09 13:36:52,986 - __main__ - INFO - Bot shutting down...
+telegram_bot  | 2025-08-09 13:36:57,276 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/suppliers [status:200 duration:0.005s]
+telegram_bot  | 2025-08-09 13:36:57,276 - __main__ - INFO - Bot started successfully!
+telegram_bot  | 2025-08-09 13:36:57,277 - aiogram.dispatcher - INFO - Start polling
+telegram_bot  | 2025-08-09 13:36:57,380 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-09 13:37:30,191 - aiogram.event - INFO - Update id=196127740 is handled. Duration 341 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:31,408 - aiogram.event - INFO - Update id=196127741 is handled. Duration 144 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:32,738 - aiogram.event - INFO - Update id=196127742 is handled. Duration 131 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:33,578 - aiogram.event - INFO - Update id=196127743 is handled. Duration 140 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:35,150 - aiogram.event - INFO - Update id=196127744 is handled. Duration 195 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:36,160 - aiogram.event - INFO - Update id=196127745 is handled. Duration 161 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:36,672 - aiogram.event - INFO - Update id=196127746 is handled. Duration 211 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:37,923 - aiogram.event - INFO - Update id=196127747 is handled. Duration 168 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:38,872 - aiogram.event - INFO - Update id=196127748 is handled. Duration 138 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:40,340 - aiogram.event - INFO - Update id=196127749 is handled. Duration 131 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:41,379 - aiogram.event - INFO - Update id=196127750 is handled. Duration 145 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:42,222 - aiogram.event - INFO - Update id=196127751 is handled. Duration 123 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:42,939 - aiogram.event - INFO - Update id=196127752 is handled. Duration 171 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:43,726 - aiogram.event - INFO - Update id=196127753 is handled. Duration 138 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:44,510 - aiogram.event - INFO - Update id=196127754 is handled. Duration 202 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:45,791 - aiogram.event - INFO - Update id=196127755 is handled. Duration 155 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:46,785 - aiogram.event - INFO - Update id=196127756 is handled. Duration 125 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:47,479 - aiogram.event - INFO - Update id=196127757 is handled. Duration 185 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:48,322 - aiogram.event - INFO - Update id=196127758 is handled. Duration 126 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:48,952 - aiogram.event - INFO - Update id=196127759 is handled. Duration 126 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 13:37:49,735 - elastic_transport.transport - INFO - POST http://elasticsearch:9200/suppliers/_search?request_cache=true [status:200 duration:0.027s]
+telegram_bot  | 2025-08-09 13:37:49,859 - aiogram.event - INFO - Update id=196127760 is handled. Duration 230 ms by bot id=7613774476
