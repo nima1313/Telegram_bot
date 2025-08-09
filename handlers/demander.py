@@ -1,11 +1,12 @@
 import logging
+import os
 from aiogram import Router, F, types
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from database.models import User, Demander, UserRole, Supplier
+from database.models import User, Demander, UserRole, Supplier, Request, RequestStatus
 from states.demander import (
     DemanderRegistration, DemanderMenu, DemanderEditProfile, DemanderSearch
 )
@@ -24,6 +25,11 @@ from keyboards.demander import (
     get_demander_cooperation_types_keyboard,
     get_demander_payment_types_keyboard,
     get_doesnt_matter_keyboard,
+)
+from keyboards.inline import (
+    get_search_result_keyboard,
+    get_request_message_keyboard,
+    get_request_action_keyboard,
 )
 from utils.validators import validate_phone_number
 from utils.users import get_or_create_user
@@ -987,53 +993,295 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
         # Fallback to database search
         hits = await _fallback_search_suppliers(session=session, search=search)
         # hits here are already source-like dicts
-        if not hits:
-            await message.answer("نتیجه‌ای یافت نشد.")
-            await state.set_state(DemanderMenu.main_menu)
-            return
-
-        text_lines = ["نتایج پیشنهادی:"]
-        for i, src in enumerate(hits[:10], 1):
-            name = src.get("full_name", "بدون نام")
-            city = src.get("city") or "-"
-            styles = src.get("work_styles") or []
-            price_daily = src.get("price_daily")
-            price_display = f"روزانه: {int(price_daily)*1000:,.0f} تومان" if isinstance(price_daily, (int, float)) else "قیمت: توافقی/نامشخص"
-            text_lines.append(f"{i}. {name} - {city} - {price_display}\nسبک‌ها: {', '.join(styles) if styles else '-'}")
-
-        await message.answer("\n\n".join(text_lines))
-        await state.set_state(DemanderMenu.main_menu)
-        return
 
     if not hits:
         await message.answer("نتیجه‌ای یافت نشد.")
         await state.set_state(DemanderMenu.main_menu)
         return
 
-    # Show results without phone numbers
-    text_lines = ["نتایج پیشنهادی:"]
-    for i, h in enumerate(hits[:10], 1):
-        src = h.get("_source", {})
-        name = src.get("full_name", "بدون نام")
-        city = src.get("city") or "-"
-        styles = src.get("work_styles") or []
-        price_daily = src.get("price_daily")
-        price_display = f"روزانه: {int(price_daily)*1000:,.0f} تومان" if isinstance(price_daily, (int, float)) else "قیمت: توافقی/نامشخص"
-        text_lines.append(f"{i}. {name} - {city} - {price_display}\nسبک‌ها: {', '.join(styles) if styles else '-'}")
-
-    await message.answer("\n\n".join(text_lines))
-    await state.set_state(DemanderMenu.main_menu)
+    # Store search results in state for navigation
+    await state.update_data(search_results=hits, current_result_index=0)
+    await state.set_state(DemanderSearch.viewing_results)
+    
+    # Show the first result
+    await show_search_result(message, state, 0)
 
 @router.message(F.text == "📄 وضعیت درخواست‌ها", DemanderMenu.main_menu)
-async def view_request_status(message: Message, state: FSMContext):
-    """مشاهده وضعیت درخواست‌ها - نسخه آتی"""
-    await message.answer("📄 قابلیت مشاهده وضعیت درخواست‌ها به زودی اضافه خواهد شد.")
+async def view_request_status(message: Message, state: FSMContext, session: AsyncSession):
+    """مشاهده وضعیت درخواست‌ها"""
+    # Get demander info
+    user = await get_user_by_telegram_id(session, str(message.from_user.id))
+    if not user or not user.demander_profile:
+        await message.answer("خطا در دریافت اطلاعات کاربری.")
+        return
+    
+    demander = user.demander_profile
+    
+    # Get requests with supplier info
+    from sqlalchemy.orm import selectinload
+    requests_stmt = select(Request).options(
+        selectinload(Request.supplier)
+    ).where(Request.demander_id == demander.id).order_by(Request.created_at.desc())
+    
+    result = await session.execute(requests_stmt)
+    requests = result.scalars().all()
+    
+    if not requests:
+        await message.answer("شما هنوز هیچ درخواستی ارسال نکرده‌اید.")
+        return
+    
+    # Format request list
+    status_text = "📄 **وضعیت درخواست‌های شما:**\n\n"
+    
+    for i, req in enumerate(requests, 1):
+        status_emoji = {
+            RequestStatus.PENDING: "⏳",
+            RequestStatus.ACCEPTED: "✅", 
+            RequestStatus.REJECTED: "❌"
+        }.get(req.status, "❓")
+        
+        status_name = {
+            RequestStatus.PENDING: "در انتظار پاسخ",
+            RequestStatus.ACCEPTED: "پذیرفته شده",
+            RequestStatus.REJECTED: "رد شده"
+        }.get(req.status, "نامشخص")
+        
+        # Format date
+        created_date = req.created_at.strftime("%Y/%m/%d %H:%M")
+        
+        status_text += f"""**{i}.** {status_emoji} **{status_name}**
+👤 تأمین‌کننده: {req.supplier.full_name}
+📅 تاریخ ارسال: {created_date}
+📝 پیام: {req.message[:50]}{'...' if len(req.message) > 50 else ''}
+
+"""
+    
+    status_text += "💡 برای مشاهده جزئیات بیشتر و ارسال درخواست جدید، از منوی جست‌وجو استفاده کنید."
+    
+    await message.answer(status_text, parse_mode="Markdown")
 
 @router.message(F.text == "🔙 بازگشت به منوی اصلی", DemanderMenu.main_menu)
 async def back_to_main_menu(message: Message, state: FSMContext):
     """بازگشت به منوی اصلی"""
     await state.clear()
     await message.answer("به منوی اصلی بازگشتید.", reply_markup=get_main_menu())
+
+# ======================= Search Result Handlers ===============================
+
+async def show_search_result(message: Message, state: FSMContext, result_index: int):
+    """Show a single search result with navigation buttons"""
+    data = await state.get_data()
+    results = data.get("search_results", [])
+    
+    if not results or result_index >= len(results):
+        await message.answer("خطا در نمایش نتایج.")
+        await state.set_state(DemanderMenu.main_menu)
+        return
+    
+    result = results[result_index]
+    # Normalize result format (handle both ES hits format and fallback format)
+    if "_source" in result:
+        supplier_data = result["_source"]
+        supplier_id = result["_id"]
+    else:
+        supplier_data = result
+        supplier_id = result.get("id")
+    
+    # Create detailed profile text
+    profile_text = create_supplier_detail_text(supplier_data, result_index, len(results))
+    
+    # Get keyboard for navigation and actions
+    keyboard = get_search_result_keyboard(result_index, len(results), supplier_id)
+    
+    # Send profile picture if available
+    portfolio_photos = supplier_data.get("portfolio_photos", [])
+    if portfolio_photos:
+        photo_id = portfolio_photos[0]  # Use first photo
+        logging.info(f"Trying to send photo with ID: {photo_id}")
+        
+        try:
+            # Try to send as Telegram file ID first
+            await message.answer_photo(
+                photo=photo_id,
+                caption=profile_text,
+                reply_markup=keyboard,
+                parse_mode="Markdown"
+            )
+            return
+        except Exception as e:
+            logging.error(f"Failed to send photo with file ID {photo_id}: {e}")
+            
+            # Fallback: try as local file path (for development/testing)
+            if os.path.exists(photo_id):
+                try:
+                    photo = FSInputFile(photo_id)
+                    await message.answer_photo(
+                        photo=photo,
+                        caption=profile_text,
+                        reply_markup=keyboard,
+                        parse_mode="Markdown"
+                    )
+                    return
+                except Exception as e2:
+                    logging.error(f"Failed to send photo as file {photo_id}: {e2}")
+    
+    # Send text-only message if no photo or photo failed
+    await message.answer(
+        profile_text,
+        reply_markup=keyboard,
+        parse_mode="Markdown"
+    )
+
+@router.callback_query(F.data.startswith("search_nav:"), DemanderSearch.viewing_results)
+async def handle_search_navigation(callback: CallbackQuery, state: FSMContext):
+    """Handle search result navigation"""
+    data = await state.get_data()
+    results = data.get("search_results", [])
+    current_index = data.get("current_result_index", 0)
+    
+    action = callback.data.split(":")[1]
+    if action == "prev" and current_index > 0:
+        new_index = current_index - 1
+    elif action == "next" and current_index < len(results) - 1:
+        new_index = current_index + 1
+    else:
+        await callback.answer("عملیات نامعتبر")
+        return
+    
+    await state.update_data(current_result_index=new_index)
+    
+    # Delete the current message and send new one
+    await callback.message.delete()
+    await show_search_result(callback.message, state, new_index)
+    await callback.answer()
+
+@router.callback_query(F.data.startswith("send_request:"), DemanderSearch.viewing_results)
+async def handle_send_request(callback: CallbackQuery, state: FSMContext):
+    """Handle send request button"""
+    supplier_id = callback.data.split(":")[1]
+    await state.update_data(selected_supplier_id=supplier_id)
+    await state.set_state(DemanderSearch.writing_request_message)
+    
+    await callback.message.edit_text(
+        "📝 لطفاً پیام درخواست خود را بنویسید:\n\n"
+        "💡 در پیام خود می‌توانید:\n"
+        "• نوع پروژه یا کار مورد نظر را شرح دهید\n"
+        "• زمان و مکان کار را مشخص کنید\n" 
+        "• سایر توضیحات مهم را اضافه کنید",
+        reply_markup=get_request_message_keyboard(supplier_id)
+    )
+    await callback.answer()
+
+@router.callback_query(F.data == "back_to_demander_menu", DemanderSearch.viewing_results)
+async def handle_back_to_menu(callback: CallbackQuery, state: FSMContext):
+    """Handle back to menu button"""
+    await state.set_state(DemanderMenu.main_menu)
+    await callback.message.edit_text(
+        "بازگشت به منوی درخواست‌کننده",
+        reply_markup=None
+    )
+    await callback.message.answer(
+        "به منوی درخواست‌کننده بازگشتید.",
+        reply_markup=get_demander_menu_keyboard()
+    )
+    await callback.answer()
+
+@router.message(DemanderSearch.writing_request_message)
+async def process_request_message(message: Message, state: FSMContext, session: AsyncSession):
+    """Process the request message and send to supplier"""
+    data = await state.get_data()
+    supplier_id = data.get("selected_supplier_id")
+    
+    if not supplier_id:
+        await message.answer("خطا در ارسال درخواست. لطفاً دوباره تلاش کنید.")
+        await state.set_state(DemanderMenu.main_menu)
+        return
+    
+    try:
+        supplier_id = int(supplier_id)
+    except (ValueError, TypeError):
+        await message.answer("خطا در شناسایی تأمین‌کننده. لطفاً دوباره تلاش کنید.")
+        await state.set_state(DemanderMenu.main_menu)
+        return
+    
+    # Get demander info
+    user = await get_user_by_telegram_id(session, str(message.from_user.id))
+    if not user or not user.demander_profile:
+        await message.answer("خطا در دریافت اطلاعات کاربری.")
+        await state.set_state(DemanderMenu.main_menu)
+        return
+    
+    demander = user.demander_profile
+    
+    # Get supplier info
+    supplier_stmt = select(Supplier).where(Supplier.id == int(supplier_id))
+    supplier_result = await session.execute(supplier_stmt)
+    supplier = supplier_result.scalar_one_or_none()
+    
+    if not supplier:
+        await message.answer("تأمین‌کننده مورد نظر یافت نشد.")
+        await state.set_state(DemanderMenu.main_menu)
+        return
+    
+    # Create request
+    new_request = Request(
+        demander_id=demander.id,
+        supplier_id=supplier.id,
+        message=message.text,
+        demander_phone=demander.phone_number,
+        status=RequestStatus.PENDING
+    )
+    
+    session.add(new_request)
+    await session.commit()
+    
+    # Send notification to supplier
+    try:
+        supplier_user_stmt = select(User).where(User.id == supplier.user_id)
+        supplier_user_result = await session.execute(supplier_user_stmt)
+        supplier_user = supplier_user_result.scalar_one_or_none()
+        
+        if supplier_user:
+            notification_text = f"""
+🔔 **درخواست جدید دریافت شد!**
+
+👤 **از:** {demander.full_name}
+🏢 **شرکت:** {demander.company_name or '-'}
+📍 **آدرس:** {demander.address}
+
+📝 **پیام درخواست:**
+{message.text}
+
+لطفاً درخواست را بررسی کرده و پاسخ دهید.
+"""
+            
+            keyboard = get_request_action_keyboard(new_request.id)
+            await message.bot.send_message(
+                chat_id=supplier_user.telegram_id,
+                text=notification_text,
+                reply_markup=keyboard,
+                parse_mode="Markdown"
+            )
+    except Exception as e:
+        logging.error(f"Failed to send notification to supplier: {e}")
+    
+    await message.answer(
+        "✅ درخواست شما با موفقیت ارسال شد!\n\n"
+        "تأمین‌کننده اطلاع‌رسانی شده و به محض پاسخ، به شما اطلاع داده خواهد شد.",
+        reply_markup=get_demander_menu_keyboard()
+    )
+    await state.set_state(DemanderMenu.main_menu)
+
+@router.callback_query(F.data == "cancel_send_request", DemanderSearch.writing_request_message)
+async def cancel_send_request(callback: CallbackQuery, state: FSMContext):
+    """Cancel sending request and return to search results"""
+    await state.set_state(DemanderSearch.viewing_results)
+    data = await state.get_data()
+    current_index = data.get("current_result_index", 0)
+    
+    await callback.message.delete()
+    await show_search_result(callback.message, state, current_index)
+    await callback.answer("انصراف از ارسال درخواست")
 
 # ======================= Helper Functions ===============================
 
@@ -1107,6 +1355,114 @@ def create_demander_profile_text(demander: Demander) -> str:
     
     if demander.additional_notes:
         profile += f"\n📋 توضیحات:\n{demander.additional_notes}"
+    
+    return profile
+
+
+def create_supplier_detail_text(supplier_data: dict, current_index: int, total_results: int) -> str:
+    """Create detailed supplier profile text without phone number"""
+    
+    def format_price_data(pricing_data):
+        """Format pricing information"""
+        if not pricing_data:
+            return "قیمت: توافقی"
+        
+        price_parts = []
+        if pricing_data.get("hourly"):
+            price_parts.append(f"ساعتی: {int(pricing_data['hourly'])*1000:,.0f} تومان")
+        if pricing_data.get("daily"):
+            price_parts.append(f"روزانه: {int(pricing_data['daily'])*1000:,.0f} تومان")
+        if pricing_data.get("per_cloth"):
+            price_parts.append(f"هر لباس: {int(pricing_data['per_cloth'])*1000:,.0f} تومان")
+        
+        if pricing_data.get("category_based"):
+            category_prices = []
+            for cat, price in pricing_data["category_based"].items():
+                cat_name = {
+                    "fashion": "فشن",
+                    "advertising": "تبلیغاتی", 
+                    "religious": "مذهبی",
+                    "children": "کودک",
+                    "sports": "ورزشی",
+                    "artistic": "هنری"
+                }.get(cat, cat)
+                category_prices.append(f"{cat_name}: {int(price)*1000:,.0f} تومان")
+            if category_prices:
+                price_parts.append("قیمت بر اساس دسته‌بندی:\n" + "\n".join(category_prices))
+        
+        return "\n".join(price_parts) if price_parts else "قیمت: توافقی"
+    
+    def format_work_styles(styles):
+        """Format work styles"""
+        if not styles:
+            return "-"
+        style_names = []
+        for style in styles:
+            style_name = {
+                "fashion": "فشن",
+                "advertising": "تبلیغاتی",
+                "religious": "مذهبی", 
+                "children": "کودک",
+                "sports": "ورزشی",
+                "artistic": "هنری",
+                "outdoor": "فضای باز",
+                "studio": "استودیو"
+            }.get(style, style)
+            style_names.append(style_name)
+        return ", ".join(style_names)
+    
+    def format_cooperation_types(types):
+        """Format cooperation types"""
+        if not types:
+            return "-"
+        type_names = []
+        for ctype in types:
+            type_name = {
+                "in_person": "حضوری",
+                "project_based": "پروژه‌ای", 
+                "part_time": "پاره وقت"
+            }.get(ctype, ctype)
+            type_names.append(type_name)
+        return ", ".join(type_names)
+
+    profile = f"""👤 **{supplier_data.get('full_name', 'بدون نام')}**
+
+🔍 **اطلاعات پایه:**
+👤 جنسیت: {supplier_data.get('gender', '-')}
+🎂 سن: {supplier_data.get('age', '-')} سال
+📏 قد: {supplier_data.get('height', '-')} سانتی‌متر
+⚖️ وزن: {supplier_data.get('weight', '-')} کیلوگرم
+📍 شهر: {supplier_data.get('city', '-')}
+🏘️ منطقه: {supplier_data.get('area', '-')}
+
+🎨 **مشخصات ظاهری:**
+💇 رنگ مو: {supplier_data.get('hair_color', '-')}
+👁️ رنگ چشم: {supplier_data.get('eye_color', '-')}
+🌟 رنگ پوست: {supplier_data.get('skin_color', '-')}
+👕 سایز بالا تنه: {supplier_data.get('top_size', '-')}
+👖 سایز پایین تنه: {supplier_data.get('bottom_size', '-')}
+
+💼 **اطلاعات همکاری:**
+🎭 سبک‌های کاری: {format_work_styles(supplier_data.get('work_styles'))}
+🤝 نوع همکاری: {format_cooperation_types(supplier_data.get('cooperation_types'))}
+
+💰 **قیمت‌گذاری:**
+{format_price_data(supplier_data.get('pricing_data'))}
+
+📸 **اینستاگرام:** {"@" + supplier_data.get('instagram_id') if supplier_data.get('instagram_id') else '-'}
+"""
+
+    if supplier_data.get('special_features'):
+        profile += f"\n✨ **ویژگی‌های خاص:** {supplier_data['special_features']}"
+    
+    if supplier_data.get('brand_experience'):
+        profile += f"\n🏆 **سابقه کار:** {supplier_data['brand_experience']}"
+    
+    if supplier_data.get('additional_notes'):
+        profile += f"\n📝 **توضیحات تکمیلی:** {supplier_data['additional_notes']}"
+    
+    # Add result counter
+    profile += f"\n\n📊 نتیجه {current_index + 1} از {total_results}"
     
     return profile
 

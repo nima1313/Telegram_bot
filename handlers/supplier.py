@@ -1599,8 +1599,12 @@ async def accept_request(callback: CallbackQuery, session: AsyncSession):
     """پذیرفتن درخواست"""
     request_id = int(callback.data.split(":")[1])
     
-    # دریافت درخواست
-    stmt = select(Request).where(Request.id == request_id)
+    # دریافت درخواست با اطلاعات کامل
+    from sqlalchemy.orm import selectinload
+    stmt = select(Request).options(
+        selectinload(Request.demander),
+        selectinload(Request.supplier)
+    ).where(Request.id == request_id)
     result = await session.execute(stmt)
     request = result.scalar_one_or_none()
     
@@ -1608,17 +1612,52 @@ async def accept_request(callback: CallbackQuery, session: AsyncSession):
         await callback.answer("درخواست یافت نشد!", show_alert=True)
         return
     
+    if request.status != RequestStatus.PENDING:
+        await callback.answer("این درخواست قبلاً پردازش شده است!", show_alert=True)
+        return
+    
     # به‌روزرسانی وضعیت
     request.status = RequestStatus.ACCEPTED
     request.updated_at = datetime.utcnow()
     await session.commit()
     
-    # ارسال نوتیفیکیشن به درخواست‌کننده
-    # (این بخش نیاز به پیاده‌سازی سیستم نوتیفیکیشن دارد)
+    # ارسال اطلاعات تماس به درخواست‌کننده
+    try:
+        demander_user_stmt = select(User).where(User.id == request.demander.user_id)
+        demander_user_result = await session.execute(demander_user_stmt)
+        demander_user = demander_user_result.scalar_one_or_none()
+        
+        if demander_user:
+            # Get supplier phone number
+            supplier_phone = request.supplier.phone_number or "در دسترس نیست"
+            
+            notification_text = f"""
+✅ **درخواست شما پذیرفته شد!**
+
+👤 **تأمین‌کننده:** {request.supplier.full_name}
+📱 **شماره تماس:** {supplier_phone}
+
+📝 **درخواست شما:**
+{request.message}
+
+اکنون می‌توانید با تأمین‌کننده تماس بگیرید.
+"""
+            
+            await callback.bot.send_message(
+                chat_id=demander_user.telegram_id,
+                text=notification_text,
+                parse_mode="Markdown"
+            )
+    except Exception as e:
+        logging.error(f"Failed to send notification to demander: {e}")
+    
+    # Update message to show demander's phone number for supplier
+    phone_info = f"\n\n📞 **شماره تماس درخواست‌کننده:** {request.demander_phone or 'در دسترس نیست'}"
     
     await callback.message.edit_text(
-        callback.message.text + "\n\n✅ درخواست پذیرفته شد.",
-        reply_markup=None
+        callback.message.text + "\n\n✅ درخواست پذیرفته شد." + phone_info,
+        reply_markup=None,
+        parse_mode="Markdown"
     )
     await callback.answer("درخواست پذیرفته شد!")
 
@@ -1627,8 +1666,12 @@ async def reject_request(callback: CallbackQuery, session: AsyncSession):
     """رد کردن درخواست"""
     request_id = int(callback.data.split(":")[1])
     
-    # دریافت درخواست
-    stmt = select(Request).where(Request.id == request_id)
+    # دریافت درخواست با اطلاعات کامل
+    from sqlalchemy.orm import selectinload
+    stmt = select(Request).options(
+        selectinload(Request.demander),
+        selectinload(Request.supplier)
+    ).where(Request.id == request_id)
     result = await session.execute(stmt)
     request = result.scalar_one_or_none()
     
@@ -1636,10 +1679,40 @@ async def reject_request(callback: CallbackQuery, session: AsyncSession):
         await callback.answer("درخواست یافت نشد!", show_alert=True)
         return
     
+    if request.status != RequestStatus.PENDING:
+        await callback.answer("این درخواست قبلاً پردازش شده است!", show_alert=True)
+        return
+    
     # به‌روزرسانی وضعیت
     request.status = RequestStatus.REJECTED
     request.updated_at = datetime.utcnow()
     await session.commit()
+    
+    # ارسال نوتیفیکیشن به درخواست‌کننده
+    try:
+        demander_user_stmt = select(User).where(User.id == request.demander.user_id)
+        demander_user_result = await session.execute(demander_user_stmt)
+        demander_user = demander_user_result.scalar_one_or_none()
+        
+        if demander_user:
+            notification_text = f"""
+❌ **درخواست شما رد شد**
+
+👤 **تأمین‌کننده:** {request.supplier.full_name}
+
+📝 **درخواست شما:**
+{request.message}
+
+متأسفانه این درخواست پذیرفته نشد. می‌توانید درخواست جدیدی برای سایر تأمین‌کنندگان ارسال کنید.
+"""
+            
+            await callback.bot.send_message(
+                chat_id=demander_user.telegram_id,
+                text=notification_text,
+                parse_mode="Markdown"
+            )
+    except Exception as e:
+        logging.error(f"Failed to send rejection notification to demander: {e}")
     
     await callback.message.edit_text(
         callback.message.text + "\n\n❌ درخواست رد شد.",

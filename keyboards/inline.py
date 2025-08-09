@@ -69,3 +69,48 @@ def get_request_confirmation_keyboard():
     )
     builder.adjust(2)
     return builder.as_markup()
+
+def get_search_result_keyboard(current_index: int, total_results: int, supplier_id: int):
+    """کیبورد نتایج جست‌وجو با قابلیت ناوبری و ارسال درخواست"""
+    builder = InlineKeyboardBuilder()
+    
+    # Navigation buttons
+    nav_buttons = []
+    if current_index > 0:
+        nav_buttons.append(InlineKeyboardButton(
+            text="◀️ قبلی",
+            callback_data=f"search_nav:prev:{current_index}"
+        ))
+    
+    if current_index < total_results - 1:
+        nav_buttons.append(InlineKeyboardButton(
+            text="بعدی ▶️",
+            callback_data=f"search_nav:next:{current_index}"
+        ))
+    
+    if nav_buttons:
+        builder.row(*nav_buttons)
+    
+    # Send request button
+    builder.button(
+        text="📩 ارسال درخواست",
+        callback_data=f"send_request:{supplier_id}"
+    )
+    
+    # Back to menu button
+    builder.button(
+        text="🔙 بازگشت به منو",
+        callback_data="back_to_demander_menu"
+    )
+    
+    builder.adjust(len(nav_buttons) if nav_buttons else 1, 1, 1)
+    return builder.as_markup()
+
+def get_request_message_keyboard(supplier_id: int):
+    """کیبورد برای نوشتن پیام درخواست"""
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="❌ انصراف",
+        callback_data="cancel_send_request"
+    )
+    return builder.as_markup()

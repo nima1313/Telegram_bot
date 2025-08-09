@@ -16,7 +16,7 @@ class DemanderSearch(StatesGroup):
     # نمایش نتایج
     viewing_results = State()
     viewing_supplier = State()
-    writing_message = State()
+    writing_request_message = State()
 
 class DemanderRegistration(StatesGroup):
     """حالت‌های ثبت‌نام درخواست‌کننده"""

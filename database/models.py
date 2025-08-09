@@ -128,6 +128,7 @@ class Request(Base):
     status = Column(Enum(RequestStatus), default=RequestStatus.PENDING)
     message = Column(Text)
     response_message = Column(Text)
+    demander_phone = Column(String(20))  # Store demander's phone for easy access
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
