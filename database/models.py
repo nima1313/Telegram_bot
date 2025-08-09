@@ -106,8 +106,6 @@ class Demander(Base):
     # اطلاعات پایه
     full_name = Column(String(200))
     company_name = Column(String(200))
-    address = Column(String(255))
-    gender = Column(String(10))
     phone_number = Column(String(20))
     instagram_id = Column(String(100))
     additional_notes = Column(Text)

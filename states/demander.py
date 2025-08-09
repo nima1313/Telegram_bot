@@ -22,8 +22,6 @@ class DemanderRegistration(StatesGroup):
     """حالت‌های ثبت‌نام درخواست‌کننده"""
     full_name = State()
     company_name = State()
-    address = State()
-    gender = State()
     phone_number = State()
     instagram_id = State()
     additional_notes = State()

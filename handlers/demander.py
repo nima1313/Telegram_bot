@@ -41,8 +41,6 @@ router = Router()
 EDITABLE_FIELDS = {
     "نام کامل": "full_name",
     "نام شرکت": "company_name", 
-    "آدرس": "address",
-    "جنسیت": "gender",
     "شماره تماس": "phone_number",
     "اینستاگرام": "instagram_id",
     "توضیحات": "additional_notes",
@@ -122,77 +120,6 @@ async def process_company_name(message: Message, state: FSMContext):
         await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_demander_edit_profile_keyboard())
     else:
         await message.answer(
-            "🔸 آدرس خود را وارد کنید:",
-            reply_markup=get_back_keyboard(),
-        )
-        await state.set_state(DemanderRegistration.address)
-
-
-@router.message(DemanderRegistration.address)
-async def process_address(message: Message, state: FSMContext):
-    """پردازش آدرس"""
-    data = await state.get_data()
-    is_editing = data.get('editing', False)
-    
-    if message.text == "↩️ بازگشت":
-        if is_editing:
-            await state.update_data(editing=False)
-            await state.set_state(DemanderRegistration.editing_field)
-            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_demander_edit_profile_keyboard())
-        else:
-            await message.answer(
-                "🔸 نام شرکت/گروه خود را وارد کنید (اختیاری):", reply_markup=get_skip_keyboard()
-            )
-            await state.set_state(DemanderRegistration.company_name)
-        return
-
-    address = message.text.strip()
-    if len(address) < 3:
-        await message.answer("❌ لطفاً آدرس معتبر وارد کنید.")
-        return
-
-    await state.update_data(address=address)
-    
-    if is_editing:
-        await state.update_data(editing=False)
-        await message.answer(f"✅ آدرس شما به '{address}' تغییر یافت.")
-        await state.set_state(DemanderRegistration.editing_field)
-        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_demander_edit_profile_keyboard())
-    else:
-        await message.answer("🔸 جنسیت خود را انتخاب کنید:", reply_markup=get_gender_keyboard())
-        await state.set_state(DemanderRegistration.gender)
-
-
-@router.message(DemanderRegistration.gender)
-async def process_gender(message: Message, state: FSMContext):
-    """پردازش جنسیت"""
-    data = await state.get_data()
-    is_editing = data.get('editing', False)
-    
-    if message.text == "↩️ بازگشت":
-        if is_editing:
-            await state.update_data(editing=False)
-            await state.set_state(DemanderRegistration.editing_field)
-            await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_demander_edit_profile_keyboard())
-        else:
-            await message.answer("🔸 آدرس خود را وارد کنید:", reply_markup=get_back_keyboard())
-            await state.set_state(DemanderRegistration.address)
-        return
-
-    if message.text not in ["👨 مرد", "👩 زن"]:
-        await message.answer("❌ لطفاً از گزینه‌های موجود انتخاب کنید.")
-        return
-
-    gender = "مرد" if message.text == "👨 مرد" else "زن"
-    await state.update_data(gender=gender)
-    
-    if is_editing:
-        await state.update_data(editing=False)
-        await message.answer(f"✅ جنسیت شما به '{gender}' تغییر یافت.")
-        await state.set_state(DemanderRegistration.editing_field)
-        await message.answer("کدام بخش دیگری را می‌خواهید ویرایش کنید؟", reply_markup=get_demander_edit_profile_keyboard())
-    else:
-        await message.answer(
             "🔸 شماره تماس خود را وارد کنید:\nمثال: 09123456789",
             reply_markup=get_back_keyboard(),
         )
@@ -211,8 +138,8 @@ async def process_phone_number(message: Message, state: FSMContext):
             await state.set_state(DemanderRegistration.editing_field)
             await message.answer("کدام بخش از اطلاعات خود را می‌خواهید ویرایش کنید؟", reply_markup=get_demander_edit_profile_keyboard())
         else:
-            await message.answer("🔸 جنسیت خود را انتخاب کنید:", reply_markup=get_gender_keyboard())
-            await state.set_state(DemanderRegistration.gender)
+            await message.answer("🔸 نام شرکت/گروه خود را وارد کنید (اختیاری):", reply_markup=get_back_keyboard())
+            await state.set_state(DemanderRegistration.company_name)
         return
 
     phone = validate_phone_number(message.text)
@@ -341,8 +268,6 @@ async def process_confirmation(message: Message, state: FSMContext, session: Asy
                 update_fields = [
                     "full_name",
                     "company_name",
-                    "address",
-                    "gender",
                     "phone_number",
                     "instagram_id",
                     "additional_notes",
@@ -355,8 +280,6 @@ async def process_confirmation(message: Message, state: FSMContext, session: Asy
                     user_id=user.id,
                     full_name=data["full_name"],
                     company_name=data.get("company_name"),
-                    address=data["address"],
-                    gender=data["gender"],
                     phone_number=data["phone_number"],
                     instagram_id=data.get("instagram_id"),
                     additional_notes=data.get("additional_notes"),
@@ -399,12 +322,6 @@ async def registration_choose_field_to_edit(message: Message, state: FSMContext)
     elif field_to_edit == "company_name":
         await message.answer("🔸 نام شرکت/گروه جدید خود را وارد کنید:", reply_markup=get_skip_keyboard())
         await state.set_state(DemanderRegistration.company_name)
-    elif field_to_edit == "address":
-        await message.answer("🔸 آدرس جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
-        await state.set_state(DemanderRegistration.address)
-    elif field_to_edit == "gender":
-        await message.answer("🔸 جنسیت جدید خود را انتخاب کنید:", reply_markup=get_gender_keyboard())
-        await state.set_state(DemanderRegistration.gender)
     elif field_to_edit == "phone_number":
         await message.answer("🔸 شماره تماس جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
         await state.set_state(DemanderRegistration.phone_number)
@@ -988,15 +905,8 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
             logging.info(f"ES hit IDs: {es_ids}")
         except Exception as log_err:
             logging.warning(f"Failed to log ES hits: {log_err}")
-    except Exception as e:
-        # Import ApiError here to avoid circular dependency issues if it were global
-        from elasticsearch import ApiError
-        if isinstance(e, ApiError):
-            logging.error(f"Elasticsearch API Error: status={e.status_code}, info={json.dumps(e.info, indent=2, ensure_ascii=False)}, error='{e.error}'")
-        else:
-            logging.exception("An unexpected error occurred during Elasticsearch search:")
-
-        logging.warning("Elasticsearch search failed, falling back to DB search")
+    except Exception:
+        logging.exception("Elasticsearch search failed, falling back to DB search")
         # Fallback to database search
         hits = await _fallback_search_suppliers(session=session, search=search)
         # hits here are already source-like dicts
@@ -1299,7 +1209,6 @@ async def process_request_message(message: Message, state: FSMContext, session: 
 
 👤 **از:** {demander.full_name}
 🏢 **شرکت:** {demander.company_name or '-'}
-📍 **آدرس:** {demander.address}
 
 📝 **پیام درخواست:**
 {message.text}
@@ -1381,8 +1290,6 @@ def create_demander_summary(data: dict) -> str:
 👤 اطلاعات پایه:
 نام: {data.get('full_name', '-')}
 شرکت/گروه: {data.get('company_name', '-')}
-آدرس: {data.get('address', '-')}
-جنسیت: {data.get('gender', '-')}
 تلفن: {data.get('phone_number', '-')}
 اینستاگرام: {data.get('instagram_id', '-')}
 
@@ -1398,8 +1305,6 @@ def create_demander_profile_text(demander: Demander) -> str:
 
 📝 نام کامل: {demander.full_name}
 🏢 نام شرکت/گروه: {demander.company_name or '-'}
-📍 آدرس: {demander.address}
-👤 جنسیت: {demander.gender}
 📱 شماره تماس: {demander.phone_number}
 """
     if demander.instagram_id:
