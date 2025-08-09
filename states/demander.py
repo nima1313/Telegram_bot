@@ -1,12 +1,17 @@
 from aiogram.fsm.state import State, StatesGroup
 
 class DemanderSearch(StatesGroup):
-    city = State()
+    categories = State()
     gender = State()
-    age_range = State()
-    work_styles = State()
-    price_range = State()
-    special_features = State()
+    cooperation_types = State()
+    payment_types = State()
+    price_range_type = State()
+    category_price_range = State()
+    city = State()
+    height_range = State()
+    hair_color = State()
+    skin_color = State()
+    notes = State()
 
     # نمایش نتایج
     viewing_results = State()

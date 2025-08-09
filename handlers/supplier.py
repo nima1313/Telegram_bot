@@ -210,7 +210,8 @@ async def process_age(message: Message, state: FSMContext):
     else:
         await message.answer(
             "🔸 شماره تماس خود را وارد کنید (ترجیحاً واتساپ):\n"
-            "مثال: 09123456789",
+            "مثال: 09123456789\n"
+            "لطفا از ارقام انگلیسی استفاده کنید.",
             reply_markup=get_back_keyboard()
         )
         await state.set_state(SupplierRegistration.phone_number)

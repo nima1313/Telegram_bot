@@ -4,7 +4,7 @@ import asyncio
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from elasticsearch import AsyncElasticsearch, NotFoundError, ApiError
 from sqlalchemy import event
 
 from config.settings import settings
@@ -16,7 +16,13 @@ _es_client: Optional[AsyncElasticsearch] = None
 def _get_es_client() -> AsyncElasticsearch:
     global _es_client
     if _es_client is None:
-        _es_client = AsyncElasticsearch(settings.elasticsearch_url)
+        _es_client = AsyncElasticsearch(
+            settings.elasticsearch_url,
+            request_timeout=3,
+            max_retries=0,
+            retry_on_timeout=False,
+            retry_on_status=(),
+        )
     return _es_client
 
 
@@ -278,6 +284,11 @@ async def search_suppliers(
     filters: Optional[Dict[str, Any]] = None,
     from_: int = 0,
     size: int = 10,
+    should: Optional[List[Dict[str, Any]]] = None,
+    min_should_match: Optional[int] = None,
+    sort: Optional[List[Dict[str, Any]]] = None,
+    filter_should: Optional[List[Dict[str, Any]]] = None,
+    filter_min_should_match: Optional[int] = None,
 ) -> Dict[str, Any]:
     es = _get_es_client()
     must_clauses: List[Dict[str, Any]] = []
@@ -316,13 +327,20 @@ async def search_suppliers(
             else:
                 filter_clauses.append({"term": {key: value}})
 
+    # Ensure 'must' is always a list of clauses
+    must_list: List[Dict[str, Any]] = must_clauses if must_clauses else [{"match_all": {}}]
+    bool_query: Dict[str, Any] = {
+        "must": must_list,
+        "filter": filter_clauses,
+    }
+
+    if should:
+        bool_query["should"] = should
+        if min_should_match is not None:
+            bool_query["minimum_should_match"] = min_should_match
+
     body: Dict[str, Any] = {
-        "query": {
-            "bool": {
-                "must": must_clauses if must_clauses else {"match_all": {}},
-                "filter": filter_clauses,
-            }
-        },
+        "query": {"bool": bool_query},
         "from": from_,
         "size": size,
         "highlight": {
@@ -339,7 +357,37 @@ async def search_suppliers(
         }
     }
 
-    return await es.search(index=SUPPLIERS_INDEX, body=body)
+    if sort:
+        body["sort"] = sort
+
+    # If there are OR-ed filters that must be satisfied by at least one, add them as a bool filter
+    if filter_should:
+        or_filter: Dict[str, Any] = {"bool": {"should": filter_should}}
+        if filter_min_should_match is not None:
+            or_filter["bool"]["minimum_should_match"] = filter_min_should_match
+        # Append into existing filter list
+        if isinstance(body["query"]["bool"]["filter"], list):
+            body["query"]["bool"]["filter"].append(or_filter)
+        else:
+            body["query"]["bool"]["filter"] = [body["query"]["bool"]["filter"], or_filter]
+
+    # Lightweight manual retry for transient 5xx
+    last_exc = None
+    for attempt in range(2):  # at most 1 retry
+        try:
+            return await es.search(index=SUPPLIERS_INDEX, body=body)
+        except ApiError as e:
+            last_exc = e
+            status = getattr(e, 'status', None)
+            if status in (502, 503, 504) and attempt == 0:
+                await asyncio.sleep(0.3)
+                continue
+            raise
+        except Exception as e:
+            last_exc = e
+            raise
+    if last_exc:
+        raise last_exc
 
 
 def _schedule(coro):

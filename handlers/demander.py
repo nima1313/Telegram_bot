@@ -5,9 +5,9 @@ from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from database.models import User, Demander, UserRole
+from database.models import User, Demander, UserRole, Supplier
 from states.demander import (
-    DemanderRegistration, DemanderMenu, DemanderEditProfile
+    DemanderRegistration, DemanderMenu, DemanderEditProfile, DemanderSearch
 )
 from keyboards.reply import (
     get_gender_keyboard,
@@ -20,6 +20,10 @@ from keyboards.reply import (
 from keyboards.demander import (
     get_demander_menu_keyboard,
     get_demander_edit_profile_keyboard,
+    get_demander_categories_keyboard,
+    get_demander_cooperation_types_keyboard,
+    get_demander_payment_types_keyboard,
+    get_doesnt_matter_keyboard,
 )
 from utils.validators import validate_phone_number
 from utils.users import get_or_create_user
@@ -490,65 +494,540 @@ async def edit_profile_enter_value(message: Message, state: FSMContext, session:
         logging.exception(f"Error updating field {field_to_edit}:")
         await message.answer("خطایی در به‌روزرسانی اطلاعات رخ داد.")
 
-# ======================= Menu Button Handlers (Placeholder) ==============
+# ======================= Advanced Demander Search =========================
+
+STYLE_MAP = {
+    "✅ 👗 فشن / کت واک": "fashion",
+    "✅ 📢 تبلیغاتی / برندینگ": "advertising",
+    "✅ 🧕 مذهبی / پوشیده": "religious",
+    "✅ 👶 کودک": "children",
+    "✅ 🏃 ورزشی": "sports",
+    "✅ 🎨 هنری / خاص": "artistic",
+    "✅ 🌳 عکاسی فضای باز": "outdoor",
+    "✅ 📸 عکاسی استودیویی": "studio",
+}
+
+COOP_MAP = {
+    "✅ حضوری": "in_person",
+    "✅ پروژه‌ای": "project_based",
+    "✅ پاره‌وقت": "part_time",
+}
+
+
+def _parse_min_max(text: str) -> tuple | None:
+    import re
+    nums = [int(n) for n in re.findall(r"\d+", text)]
+    if not nums:
+        return None
+    if len(nums) == 1:
+        return (None, nums[0])
+    return (nums[0], nums[1])
+
 
 @router.message(F.text == "🔍 جست‌جوی تأمین‌کننده", DemanderMenu.main_menu)
-async def search_suppliers(message: Message, state: FSMContext):
-    """جست‌جوی تأمین‌کننده با فیلتر قیمت ساده"""
-    await state.update_data(search_filters={})
-    await message.answer(
-        "🔎 یک بازه قیمت انتخاب کنید (بر اساس قیمت روزانه، به هزار تومان):",
-        reply_markup=get_price_range_keyboard(),
+async def start_advanced_search(message: Message, state: FSMContext):
+    await state.update_data(
+        search={
+            "categories": [],
+            "gender": None,
+            "cooperation_types": [],
+            "payment_types": [],
+            "price_filters": {},  # price_hourly/daily/per_cloth -> {gte,lte}
+            "category_price_filters": {},  # style -> {gte,lte}
+            "city": None,
+            "height": None,  # {gte,lte}
+            "hair_color": None,
+            "skin_color": None,
+            "notes": None,
+        }
     )
-    await state.set_state(DemanderMenu.searching)
+    await message.answer(
+        "لطفاً دسته‌بندی‌ها (سبک‌ها) را انتخاب کنید. می‌توانید چند مورد را انتخاب کنید و سپس 'تأیید و ادامه' را بزنید.",
+        reply_markup=get_demander_categories_keyboard(),
+    )
+    await state.set_state(DemanderSearch.categories)
 
-@router.message(DemanderMenu.searching)
-async def handle_search_filters(message: Message, state: FSMContext):
+
+@router.message(DemanderSearch.categories)
+async def pick_categories(message: Message, state: FSMContext):
     data = await state.get_data()
-    filters = data.get("search_filters", {})
+    search = data.get("search", {})
+    selected = set(search.get("categories", []))
 
     if message.text == "↩️ بازگشت":
         await state.set_state(DemanderMenu.main_menu)
-        await message.answer("به منو برگشتید.")
+        await message.answer("به منوی درخواست‌کننده بازگشتید.", reply_markup=get_demander_menu_keyboard())
         return
 
-    ranges_map = {
-        "💰 زیر ۵۰۰ هزار تومان": {"lte": 500},
-        "💰 ۵۰۰ هزار - ۱ میلیون": {"gte": 500, "lte": 1000},
-        "💰 ۱ - ۲ میلیون": {"gte": 1000, "lte": 2000},
-        "💰 بالای ۲ میلیون": {"gte": 2000},
-        "🤷 مهم نیست": None,
-    }
-    price_range = ranges_map.get(message.text)
-    if message.text not in ranges_map:
-        await message.answer("لطفاً یک گزینه معتبر انتخاب کنید.", reply_markup=get_price_range_keyboard())
+    if message.text == "✔️ تأیید و ادامه":
+        if not selected:
+            await message.answer("لطفاً حداقل یک دسته‌بندی را انتخاب کنید.")
+            return
+        await state.update_data(search={**search, "categories": list(selected)})
+        await message.answer("جنسیت مورد نظر را انتخاب کنید:", reply_markup=get_gender_keyboard())
+        await state.set_state(DemanderSearch.gender)
         return
 
-    # We'll filter on ES field price_daily
-    if price_range is not None:
-        filters["price_daily"] = price_range
+    if message.text in STYLE_MAP:
+        style = STYLE_MAP[message.text]
+        if style in selected:
+            selected.remove(style)
+            await message.answer("❌ از انتخاب‌ها حذف شد.")
+        else:
+            selected.add(style)
+            await message.answer("✅ اضافه شد.")
+        await state.update_data(search={**search, "categories": list(selected)})
+        return
 
-    await state.update_data(search_filters=filters)
+    await message.answer("لطفاً از گزینه‌های موجود استفاده کنید.")
 
-    # Execute ES search
+
+@router.message(DemanderSearch.gender)
+async def pick_gender(message: Message, state: FSMContext):
+    if message.text == "↩️ بازگشت":
+        await message.answer(
+            "لطفاً دسته‌بندی‌ها را انتخاب کنید.",
+            reply_markup=get_demander_categories_keyboard(),
+        )
+        await state.set_state(DemanderSearch.categories)
+        return
+
+    if message.text not in ["👨 مرد", "👩 زن"]:
+        await message.answer("لطفاً یکی از گزینه‌ها را انتخاب کنید.")
+        return
+
+    gender = "مرد" if message.text == "👨 مرد" else "زن"
+    data = await state.get_data()
+    search = data.get("search", {})
+    await state.update_data(search={**search, "gender": gender})
+
+    await message.answer(
+        "نوع همکاری قابل قبول را انتخاب کنید (می‌توانید چند مورد انتخاب کنید) یا 'مهم نیست' را بزنید.",
+        reply_markup=get_demander_cooperation_types_keyboard(),
+    )
+    await state.set_state(DemanderSearch.cooperation_types)
+
+
+@router.message(DemanderSearch.cooperation_types)
+async def pick_cooperation_types(message: Message, state: FSMContext):
+    data = await state.get_data()
+    search = data.get("search", {})
+    selected = set(search.get("cooperation_types", []))
+
+    if message.text == "↩️ بازگشت":
+        await message.answer("جنسیت را انتخاب کنید:", reply_markup=get_gender_keyboard())
+        await state.set_state(DemanderSearch.gender)
+        return
+
+    if message.text == "🤷 مهم نیست":
+        await state.update_data(search={**search, "cooperation_types": []})
+        # move on
+        await message.answer(
+            "کدام نوع پرداخت‌ها قابل قبول هستند؟ (می‌توانید چند مورد انتخاب کنید)",
+            reply_markup=get_demander_payment_types_keyboard(),
+        )
+        await state.set_state(DemanderSearch.payment_types)
+        return
+
+    if message.text == "✔️ تأیید و ادامه":
+        await state.update_data(search={**search, "cooperation_types": list(selected)})
+        await message.answer(
+            "کدام نوع پرداخت‌ها قابل قبول هستند؟ (می‌توانید چند مورد انتخاب کنید)",
+            reply_markup=get_demander_payment_types_keyboard(),
+        )
+        await state.set_state(DemanderSearch.payment_types)
+        return
+
+    if message.text in COOP_MAP:
+        coop = COOP_MAP[message.text]
+        if coop in selected:
+            selected.remove(coop)
+            await message.answer("❌ از انتخاب‌ها حذف شد.")
+        else:
+            selected.add(coop)
+            await message.answer("✅ اضافه شد.")
+        await state.update_data(search={**search, "cooperation_types": list(selected)})
+        return
+
+    await message.answer("لطفاً از گزینه‌های موجود استفاده کنید.")
+
+
+PRICE_TYPE_MAP = {
+    "✅ ساعتی": "price_hourly",
+    "✅ روزانه": "price_daily",
+    "✅ به ازای هر لباس": "price_per_cloth",
+    "✅ بر اساس دسته‌بندی": "category_based",
+}
+
+
+@router.message(DemanderSearch.payment_types)
+async def pick_payment_types(message: Message, state: FSMContext):
+    data = await state.get_data()
+    search = data.get("search", {})
+    selected = list(search.get("payment_types", []))
+
+    if message.text == "↩️ بازگشت":
+        await message.answer(
+            "نوع همکاری قابل قبول را انتخاب کنید.",
+            reply_markup=get_demander_cooperation_types_keyboard(),
+        )
+        await state.set_state(DemanderSearch.cooperation_types)
+        return
+
+    if message.text == "✅ همه مورد قبول است":
+        selected = ["price_hourly", "price_daily", "price_per_cloth", "category_based"]
+        await state.update_data(search={**search, "payment_types": selected})
+        # proceed to price ranges per selected
+        await _ask_next_price_range(message, state)
+        return
+
+    if message.text == "✔️ تأیید و ادامه":
+        if not selected:
+            await message.answer("لطفاً حداقل یک نوع پرداخت را انتخاب کنید یا 'همه مورد قبول است' را بزنید.")
+            return
+        await state.update_data(search={**search, "payment_types": selected})
+        await _ask_next_price_range(message, state)
+        return
+
+    if message.text in PRICE_TYPE_MAP:
+        p = PRICE_TYPE_MAP[message.text]
+        if p in selected:
+            selected.remove(p)
+            await message.answer("❌ از انتخاب‌ها حذف شد.")
+        else:
+            selected.append(p)
+            await message.answer("✅ اضافه شد.")
+        await state.update_data(search={**search, "payment_types": selected})
+        return
+
+    await message.answer("لطفاً از گزینه‌های موجود استفاده کنید.")
+
+
+async def _ask_next_price_range(message: Message, state: FSMContext):
+    data = await state.get_data()
+    search = data.get("search", {})
+    payment_types = search.get("payment_types", [])
+    price_filters = search.get("price_filters", {})
+    # find next non-category payment needing range
+    for p in ["price_daily", "price_hourly", "price_per_cloth"]:
+        if p in payment_types and p not in price_filters:
+            name = {"price_daily": "روزانه", "price_hourly": "ساعتی", "price_per_cloth": "به ازای هر لباس"}[p]
+            await message.answer(
+                f"محدوده قیمت {name} قابل قبول را وارد کنید (به هزار تومان، مانند 300-800) یا 'مهم نیست'.",
+                reply_markup=get_doesnt_matter_keyboard(),
+            )
+            await state.update_data(search={**search, "_current_price_key": p})
+            await state.set_state(DemanderSearch.price_range_type)
+            return
+
+    # handle category-based if selected
+    if "category_based" in payment_types:
+        # ask per selected category
+        categories = search.get("categories", [])
+        cat_filters = search.get("category_price_filters", {})
+        for c in categories:
+            if c not in cat_filters:
+                await message.answer(
+                    f"محدوده قیمت برای سبک '{c}' را وارد کنید (هزار تومان، مثل 200-600) یا 'مهم نیست'.",
+                    reply_markup=get_doesnt_matter_keyboard(),
+                )
+                await state.update_data(search={**search, "_current_category": c})
+                await state.set_state(DemanderSearch.category_price_range)
+                return
+
+    # otherwise proceed to city
+    await message.answer("شهر مورد نظر شما چیست؟ (می‌توانید تقریبی بنویسید) یا 'مهم نیست'", reply_markup=get_doesnt_matter_keyboard())
+    await state.set_state(DemanderSearch.city)
+
+
+@router.message(DemanderSearch.price_range_type)
+async def enter_price_range_type(message: Message, state: FSMContext):
+    data = await state.get_data()
+    search = data.get("search", {})
+    current_key = search.get("_current_price_key")
+    if not current_key:
+        await _ask_next_price_range(message, state)
+        return
+
+    if message.text == "↩️ بازگشت":
+        await message.answer(
+            "کدام نوع پرداخت‌ها قابل قبول هستند؟",
+            reply_markup=get_demander_payment_types_keyboard(),
+        )
+        await state.set_state(DemanderSearch.payment_types)
+        return
+
+    if message.text == "🤷 مهم نیست":
+        # mark this price type as processed with no constraints
+        pf = {**search.get("price_filters", {})}
+        pf[current_key] = {}
+        await state.update_data(search={**search, "price_filters": pf, "_current_price_key": None})
+        await _ask_next_price_range(message, state)
+        return
+
+    rng = _parse_min_max(message.text)
+    if not rng:
+        await message.answer("لطفاً یک محدوده معتبر وارد کنید، مثل 300-800 یا 'مهم نیست'.")
+        return
+    gte, lte = rng
+    pf = {**search.get("price_filters", {})}
+    pf[current_key] = {k: v for k, v in {"gte": gte, "lte": lte}.items() if v is not None}
+    await state.update_data(search={**search, "price_filters": pf, "_current_price_key": None})
+    await _ask_next_price_range(message, state)
+
+
+@router.message(DemanderSearch.category_price_range)
+async def enter_category_price_range(message: Message, state: FSMContext):
+    data = await state.get_data()
+    search = data.get("search", {})
+    current_category = search.get("_current_category")
+    if not current_category:
+        await _ask_next_price_range(message, state)
+        return
+
+    if message.text == "↩️ بازگشت":
+        await message.answer(
+            "کدام نوع پرداخت‌ها قابل قبول هستند؟",
+            reply_markup=get_demander_payment_types_keyboard(),
+        )
+        await state.set_state(DemanderSearch.payment_types)
+        return
+
+    if message.text == "🤷 مهم نیست":
+        cpf = {**search.get("category_price_filters", {})}
+        cpf[current_category] = {}
+        await state.update_data(search={**search, "category_price_filters": cpf, "_current_category": None})
+        await _ask_next_price_range(message, state)
+        return
+
+    rng = _parse_min_max(message.text)
+    if not rng:
+        await message.answer("لطفاً یک محدوده معتبر وارد کنید، مثل 200-600 یا 'مهم نیست'.")
+        return
+    gte, lte = rng
+    cpf = {**search.get("category_price_filters", {})}
+    cpf[current_category] = {k: v for k, v in {"gte": gte, "lte": lte}.items() if v is not None}
+    await state.update_data(search={**search, "category_price_filters": cpf, "_current_category": None})
+    await _ask_next_price_range(message, state)
+
+
+@router.message(DemanderSearch.city)
+async def enter_city(message: Message, state: FSMContext):
+    if message.text == "↩️ بازگشت":
+        await _ask_next_price_range(message, state)
+        return
+    city = None if message.text == "🤷 مهم نیست" else message.text.strip()
+    data = await state.get_data()
+    search = data.get("search", {})
+    await state.update_data(search={**search, "city": city})
+    await message.answer("محدوده قد مورد نظر (سانتی‌متر) را وارد کنید، مانند 165-185، یا 'مهم نیست'.", reply_markup=get_doesnt_matter_keyboard())
+    await state.set_state(DemanderSearch.height_range)
+
+
+@router.message(DemanderSearch.height_range)
+async def enter_height_range(message: Message, state: FSMContext):
+    if message.text == "↩️ بازگشت":
+        await message.answer("شهر مورد نظر شما چیست؟", reply_markup=get_doesnt_matter_keyboard())
+        await state.set_state(DemanderSearch.city)
+        return
+    data = await state.get_data()
+    search = data.get("search", {})
+    if message.text == "🤷 مهم نیست":
+        await state.update_data(search={**search, "height": None})
+    else:
+        rng = _parse_min_max(message.text)
+        if not rng:
+            await message.answer("فرمت محدوده معتبر نیست. مثال: 165-185 یا 'مهم نیست'.")
+            return
+        gte, lte = rng
+        await state.update_data(search={**search, "height": {k: v for k, v in {"gte": gte, "lte": lte}.items() if v is not None}})
+
+    await message.answer("رنگ مو (برای اولویت‌بندی، اختیاری) را وارد کنید یا 'مهم نیست'.", reply_markup=get_doesnt_matter_keyboard())
+    await state.set_state(DemanderSearch.hair_color)
+
+
+@router.message(DemanderSearch.hair_color)
+async def enter_hair_color(message: Message, state: FSMContext):
+    if message.text == "↩️ بازگشت":
+        await message.answer("محدوده قد را وارد کنید.", reply_markup=get_doesnt_matter_keyboard())
+        await state.set_state(DemanderSearch.height_range)
+        return
+    hair = None if message.text == "🤷 مهم نیست" else message.text.strip()
+    data = await state.get_data()
+    search = data.get("search", {})
+    await state.update_data(search={**search, "hair_color": hair})
+    await message.answer("رنگ پوست (برای اولویت‌بندی، اختیاری) را وارد کنید یا 'مهم نیست'.", reply_markup=get_doesnt_matter_keyboard())
+    await state.set_state(DemanderSearch.skin_color)
+
+
+@router.message(DemanderSearch.skin_color)
+async def enter_skin_color(message: Message, state: FSMContext):
+    if message.text == "↩️ بازگشت":
+        await message.answer("رنگ مو را وارد کنید.", reply_markup=get_doesnt_matter_keyboard())
+        await state.set_state(DemanderSearch.hair_color)
+        return
+    skin = None if message.text == "🤷 مهم نیست" else message.text.strip()
+    data = await state.get_data()
+    search = data.get("search", {})
+    await state.update_data(search={**search, "skin_color": skin})
+    await message.answer("توضیحات اضافی (اختیاری) را وارد کنید یا 'مهم نیست'.")
+    await state.set_state(DemanderSearch.notes)
+
+
+@router.message(DemanderSearch.notes)
+async def enter_notes_and_search(message: Message, state: FSMContext, session: AsyncSession):
+    if message.text == "↩️ بازگشت":
+        await message.answer("رنگ پوست را وارد کنید.", reply_markup=get_doesnt_matter_keyboard())
+        await state.set_state(DemanderSearch.skin_color)
+        return
+
+    notes = None if message.text == "🤷 مهم نیست" else message.text.strip()
+    data = await state.get_data()
+    search = data.get("search", {})
+    search = {**search, "notes": notes}
+    await state.update_data(search=search)
+
+    # Build ES query
+    filters: list[dict] = []
+    should: list[dict] = []
+    min_should: int | None = None
+
+    # Exact filters first (fast)
+    if search.get("gender"):
+        filters.append({"term": {"gender": search["gender"]}})
+
+    if search.get("cooperation_types"):
+        filters.append({"terms": {"cooperation_types": search["cooperation_types"]}})
+
+    # Categories: require at least one match via terms filter, and boost by more matches via should
+    categories = search.get("categories") or []
+    if categories:
+        filters.append({"terms": {"work_styles": categories}})
+        for c in categories:
+            should.append({"term": {"work_styles": {"value": c, "boost": 2.0}}})
+
+    # Price types: use should so any acceptable price can match
+    price_filters = search.get("price_filters") or {}
+    price_should = []
+    for field_key, rng in price_filters.items():
+        if rng:
+            price_should.append({"range": {field_key: rng}})
+    # Note: category-based prices are not flattened in the index yet; reserved for future
+    if price_should:
+        should.extend(price_should)
+        # ensure at least one price condition matches if any were provided
+        min_should = (min_should or 0) + 1
+
+    # City fuzzy boosting
+    if search.get("city"):
+        should.append({
+            "match": {
+                "city": {
+                    "query": search["city"],
+                    "fuzziness": "AUTO",
+                    "boost": 1.5,
+                }
+            }
+        })
+
+    # Height filter
+    if search.get("height"):
+        filters.append({"range": {"height": search["height"]}})
+
+    # Hair/Skin color boosting
+    if search.get("hair_color"):
+        should.append({
+            "match": {
+                "hair_color": {
+                    "query": search["hair_color"],
+                    "fuzziness": "AUTO",
+                    "boost": 1.2,
+                }
+            }
+        })
+    if search.get("skin_color"):
+        should.append({
+            "match": {
+                "skin_color": {
+                    "query": search["skin_color"],
+                    "fuzziness": "AUTO",
+                    "boost": 1.2,
+                }
+            }
+        })
+
+    # Notes boosting through search_text
+    query = None
+    if search.get("notes"):
+        query = search["notes"]
+
+    # Execute ES search with robust error handling
     from search.suppliers_index import search_suppliers as es_search
-    res = await es_search(query=None, filters=filters, from_=0, size=5)
+    # Convert filters list into dict for helper
+    filter_dict = {}
+    for f in filters:
+        if "term" in f:
+            key, value = next(iter(f["term"].items()))
+            filter_dict[key] = value
+        elif "terms" in f:
+            key, value = next(iter(f["terms"].items()))
+            filter_dict[key] = value
+        elif "range" in f:
+            key, value = next(iter(f["range"].items()))
+            filter_dict[key] = value
+
+    try:
+        res = await es_search(
+            query=query,
+            filters=filter_dict or None,
+            from_=0,
+            size=10,
+            should=should or None,
+            min_should_match=min_should,
+            sort=None,
+        )
+        hits = res.get("hits", {}).get("hits", [])
+    except Exception:
+        logging.warning("Elasticsearch search failed (service unavailable or timeout), falling back to DB search")
+        # Fallback to database search
+        hits = await _fallback_search_suppliers(session=session, search=search)
+        # hits here are already source-like dicts
+        if not hits:
+            await message.answer("نتیجه‌ای یافت نشد.")
+            await state.set_state(DemanderMenu.main_menu)
+            return
+
+        text_lines = ["نتایج پیشنهادی:"]
+        for i, src in enumerate(hits[:10], 1):
+            name = src.get("full_name", "بدون نام")
+            city = src.get("city") or "-"
+            styles = src.get("work_styles") or []
+            price_daily = src.get("price_daily")
+            price_display = f"روزانه: {int(price_daily)*1000:,.0f} تومان" if isinstance(price_daily, (int, float)) else "قیمت: توافقی/نامشخص"
+            text_lines.append(f"{i}. {name} - {city} - {price_display}\nسبک‌ها: {', '.join(styles) if styles else '-'}")
+
+        await message.answer("\n\n".join(text_lines))
+        await state.set_state(DemanderMenu.main_menu)
+        return
+
     hits = res.get("hits", {}).get("hits", [])
     if not hits:
         await message.answer("نتیجه‌ای یافت نشد.")
         await state.set_state(DemanderMenu.main_menu)
         return
 
-    text = "نتایج:"
-    for i, h in enumerate(hits, 1):
+    # Show results without phone numbers
+    text_lines = ["نتایج پیشنهادی:"]
+    for i, h in enumerate(hits[:10], 1):
         src = h.get("_source", {})
         name = src.get("full_name", "بدون نام")
-        city = src.get("city", "-")
-        price = src.get("price_daily")
-        price_text = f"{int(price)*1000:,.0f} تومان" if isinstance(price, (int, float)) else "توافقی"
-        text += f"\n{i}. {name} - {city} - روزانه: {price_text}"
+        city = src.get("city") or "-"
+        styles = src.get("work_styles") or []
+        price_daily = src.get("price_daily")
+        price_display = f"روزانه: {int(price_daily)*1000:,.0f} تومان" if isinstance(price_daily, (int, float)) else "قیمت: توافقی/نامشخص"
+        text_lines.append(f"{i}. {name} - {city} - {price_display}\nسبک‌ها: {', '.join(styles) if styles else '-'}")
 
-    await message.answer(text)
+    await message.answer("\n\n".join(text_lines))
     await state.set_state(DemanderMenu.main_menu)
 
 @router.message(F.text == "📄 وضعیت درخواست‌ها", DemanderMenu.main_menu)
@@ -563,6 +1042,45 @@ async def back_to_main_menu(message: Message, state: FSMContext):
     await message.answer("به منوی اصلی بازگشتید.", reply_markup=get_main_menu())
 
 # ======================= Helper Functions ===============================
+
+async def _fallback_search_suppliers(session: AsyncSession, search: dict) -> list[dict]:
+    """Lightweight fallback query using the database if Elastic is unavailable.
+    It applies a subset of filters for a best-effort result.
+    """
+    stmt = select(Supplier)
+    # gender filter
+    if search.get("gender"):
+        stmt = stmt.where(Supplier.gender == search["gender"]) 
+    # cooperation_types any-match (simple contains check)
+    if search.get("cooperation_types"):
+        from sqlalchemy import or_
+        ors = []
+        for ct in search["cooperation_types"]:
+            ors.append(Supplier.cooperation_types.contains([ct]))
+        if ors:
+            stmt = stmt.where(or_(*ors))
+    # height range
+    if isinstance(search.get("height"), dict):
+        hr = search["height"]
+        if "gte" in hr:
+            stmt = stmt.where(Supplier.height >= hr["gte"]) 
+        if "lte" in hr:
+            stmt = stmt.where(Supplier.height <= hr["lte"]) 
+    # city contains
+    if search.get("city"):
+        stmt = stmt.where(Supplier.city.ilike(f"%{search['city']}%"))
+
+    result = await session.execute(stmt)
+    rows = result.scalars().all()
+    output: list[dict] = []
+    for s in rows:
+        output.append({
+            "full_name": s.full_name,
+            "city": s.city,
+            "work_styles": s.work_styles or [],
+            "price_daily": (s.pricing_data or {}).get("daily"),
+        })
+    return output
 
 def create_demander_summary(data: dict) -> str:
     summary = f"""

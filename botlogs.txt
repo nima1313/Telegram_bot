@@ -1,70 +1,25 @@
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
-telegram_bot  |     @router.message(DemanderMenu.searching)
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
-telegram_bot  |     @router.message(DemanderMenu.searching)
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
-telegram_bot  |     @router.message(DemanderMenu.searching)
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
-telegram_bot  |     @router.message(DemanderMenu.searching)
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
-telegram_bot  |     @router.message(DemanderMenu.searching)
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
-telegram_bot  |     @router.message(DemanderMenu.searching)
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
-telegram_bot  |     @router.message(DemanderMenu.searching)
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
-telegram_bot  |     @router.message(DemanderMenu.searching)
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
-telegram_bot  |     @router.message(DemanderMenu.searching)
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/app/main.py", line 14, in <module>
-telegram_bot  |     from handlers import start, supplier, demander
-telegram_bot  |   File "/app/handlers/demander.py", line 505, in <module>
-telegram_bot  |     @router.message(DemanderMenu.searching)
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  | AttributeError: type object 'DemanderMenu' has no attribute 'searching'
+telegram_bot  | 2025-08-09 00:45:27,166 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/suppliers [status:200 duration:0.004s]
+telegram_bot  | 2025-08-09 00:45:27,166 - __main__ - INFO - Bot started successfully!
+telegram_bot  | 2025-08-09 00:45:27,166 - aiogram.dispatcher - INFO - Start polling
+telegram_bot  | 2025-08-09 00:45:27,266 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-09 00:45:31,246 - aiogram.event - INFO - Update id=196127065 is not handled. Duration 4 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:36,303 - aiogram.event - INFO - Update id=196127066 is handled. Duration 264 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:37,676 - aiogram.event - INFO - Update id=196127067 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:39,622 - aiogram.event - INFO - Update id=196127068 is handled. Duration 205 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:41,386 - aiogram.event - INFO - Update id=196127069 is handled. Duration 121 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:43,309 - aiogram.event - INFO - Update id=196127070 is handled. Duration 717 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:44,538 - aiogram.event - INFO - Update id=196127071 is handled. Duration 219 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:46,483 - aiogram.event - INFO - Update id=196127072 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:47,610 - aiogram.event - INFO - Update id=196127073 is handled. Duration 205 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:48,633 - aiogram.event - INFO - Update id=196127074 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:49,657 - aiogram.event - INFO - Update id=196127075 is handled. Duration 153 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:50,579 - aiogram.event - INFO - Update id=196127076 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:51,312 - aiogram.event - INFO - Update id=196127077 is handled. Duration 118 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:52,029 - aiogram.event - INFO - Update id=196127078 is handled. Duration 118 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:52,934 - aiogram.event - INFO - Update id=196127079 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:53,548 - aiogram.event - INFO - Update id=196127080 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:54,470 - aiogram.event - INFO - Update id=196127081 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-09 00:45:54,812 - elastic_transport.transport - INFO - POST http://elasticsearch:9200/suppliers/_search [status:503 duration:0.005s]
+telegram_bot  | 2025-08-09 00:45:54,812 - elastic_transport.node_pool - WARNING - Node <AiohttpHttpNode(http://elasticsearch:9200)> has failed for 1 times in a row, putting on 1 second timeout
+telegram_bot  | 2025-08-09 00:45:54,812 - root - WARNING - Elasticsearch search failed (service unavailable or timeout)
+telegram_bot  | 2025-08-09 00:45:54,926 - aiogram.event - INFO - Update id=196127082 is handled. Duration 123 ms by bot id=7613774476
