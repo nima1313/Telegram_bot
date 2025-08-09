@@ -8,9 +8,12 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres
-      - redis
-      - elasticsearch
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
     volumes:
       - ./logs:/app/logs
     networks:
@@ -46,7 +49,16 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+      - cluster.routing.allocation.disk.watermark.low=95%
+      - cluster.routing.allocation.disk.watermark.high=97%
+      - cluster.routing.allocation.disk.watermark.flood_stage=99%
+      - cluster.info.update.interval=1m
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
     ulimits:
       memlock:
         soft: -1

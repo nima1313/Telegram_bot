@@ -18,10 +18,11 @@ def _get_es_client() -> AsyncElasticsearch:
     if _es_client is None:
         _es_client = AsyncElasticsearch(
             settings.elasticsearch_url,
-            request_timeout=3,
-            max_retries=0,
-            retry_on_timeout=False,
-            retry_on_status=(),
+            # Simplified, robust client for single-node setup
+            request_timeout=15,
+            max_retries=3,
+            retry_on_timeout=True,
+            retry_on_status=(502, 503, 504),
         )
     return _es_client
 
@@ -198,8 +199,7 @@ async def ensure_suppliers_index() -> None:
                         "search_analyzer": "persian_search_analyzer",
                         "fields": {
                             "keyword": {
-                                "type": "keyword",
-                                "normalizer": "persian_keyword_normalizer"
+                                "type": "keyword"
                             }
                         }
                     },
@@ -281,7 +281,7 @@ async def delete_supplier_document(supplier_id: int) -> None:
 
 async def search_suppliers(
     query: Optional[str],
-    filters: Optional[Dict[str, Any]] = None,
+    filter_clauses: Optional[List[Dict[str, Any]]] = None,
     from_: int = 0,
     size: int = 10,
     should: Optional[List[Dict[str, Any]]] = None,
@@ -292,8 +292,7 @@ async def search_suppliers(
 ) -> Dict[str, Any]:
     es = _get_es_client()
     must_clauses: List[Dict[str, Any]] = []
-    filter_clauses: List[Dict[str, Any]] = []
-
+    
     if query:
         must_clauses.append(
             {
@@ -315,23 +314,11 @@ async def search_suppliers(
             }
         )
 
-    if filters:
-        for key, value in filters.items():
-            if value is None:
-                continue
-            # Range filter support: value like {"gte": x, "lte": y}
-            if isinstance(value, dict) and ("gte" in value or "lte" in value):
-                filter_clauses.append({"range": {key: value}})
-            elif isinstance(value, list):
-                filter_clauses.append({"terms": {key: value}})
-            else:
-                filter_clauses.append({"term": {key: value}})
-
     # Ensure 'must' is always a list of clauses
     must_list: List[Dict[str, Any]] = must_clauses if must_clauses else [{"match_all": {}}]
     bool_query: Dict[str, Any] = {
         "must": must_list,
-        "filter": filter_clauses,
+        "filter": filter_clauses or [],
     }
 
     if should:
@@ -343,18 +330,13 @@ async def search_suppliers(
         "query": {"bool": bool_query},
         "from": from_,
         "size": size,
-        "highlight": {
-            "fields": {
-                "search_text": {},
-                "full_name": {},
-                "brand_experience": {},
-                "additional_notes": {},
-                "city": {},
-                "area": {}
-            },
-            "pre_tags": ["<em>"],
-            "post_tags": ["</em>"]
-        }
+        # Return only fields needed by the bot to reduce load
+        "_source": [
+            "full_name",
+            "city",
+            "work_styles",
+            "price_daily",
+        ],
     }
 
     if sort:
@@ -371,32 +353,26 @@ async def search_suppliers(
         else:
             body["query"]["bool"]["filter"] = [body["query"]["bool"]["filter"], or_filter]
 
-    # Lightweight manual retry for transient 5xx
-    last_exc = None
-    for attempt in range(2):  # at most 1 retry
-        try:
-            return await es.search(index=SUPPLIERS_INDEX, body=body)
-        except ApiError as e:
-            last_exc = e
-            status = getattr(e, 'status', None)
-            if status in (502, 503, 504) and attempt == 0:
-                await asyncio.sleep(0.3)
-                continue
-            raise
-        except Exception as e:
-            last_exc = e
-            raise
-    if last_exc:
-        raise last_exc
+    try:
+        return await es.search(index=SUPPLIERS_INDEX, body=body, track_total_hits=False, request_cache=True)
+    except ApiError as e:
+        # Re-raise to allow the handler to catch it and potentially fallback
+        raise e
 
 
 def _schedule(coro):
+    async def _wrapper():
+        try:
+            await coro
+        except Exception:
+            logging.exception(f"Error in scheduled background task for coro {coro.__name__}")
+
     try:
         loop = asyncio.get_running_loop()
-        loop.create_task(coro)
+        loop.create_task(_wrapper())
     except RuntimeError:
         # No running loop; best-effort fallback
-        asyncio.run(coro)
+        asyncio.run(_wrapper())
 
 
 def _after_insert(mapper, connection, target: Supplier):
@@ -412,6 +388,7 @@ def _after_delete(mapper, connection, target: Supplier):
 
 
 async def init_elastic_indexing() -> None:
+    # docker-compose healthcheck ensures ES is ready, so just create index
     await ensure_suppliers_index()
     # Register event listeners once
     event.listen(Supplier, "after_insert", _after_insert, propagate=True)

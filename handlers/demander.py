@@ -963,23 +963,11 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
 
     # Execute ES search with robust error handling
     from search.suppliers_index import search_suppliers as es_search
-    # Convert filters list into dict for helper
-    filter_dict = {}
-    for f in filters:
-        if "term" in f:
-            key, value = next(iter(f["term"].items()))
-            filter_dict[key] = value
-        elif "terms" in f:
-            key, value = next(iter(f["terms"].items()))
-            filter_dict[key] = value
-        elif "range" in f:
-            key, value = next(iter(f["range"].items()))
-            filter_dict[key] = value
 
     try:
         res = await es_search(
             query=query,
-            filters=filter_dict or None,
+            filter_clauses=filters or None,
             from_=0,
             size=10,
             should=should or None,
@@ -987,8 +975,15 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
             sort=None,
         )
         hits = res.get("hits", {}).get("hits", [])
-    except Exception:
-        logging.warning("Elasticsearch search failed (service unavailable or timeout), falling back to DB search")
+    except Exception as e:
+        # Import ApiError here to avoid circular dependency issues if it were global
+        from elasticsearch import ApiError
+        if isinstance(e, ApiError):
+            logging.error(f"Elasticsearch API Error: status={e.status_code}, info={json.dumps(e.info, indent=2, ensure_ascii=False)}, error='{e.error}'")
+        else:
+            logging.exception("An unexpected error occurred during Elasticsearch search:")
+
+        logging.warning("Elasticsearch search failed, falling back to DB search")
         # Fallback to database search
         hits = await _fallback_search_suppliers(session=session, search=search)
         # hits here are already source-like dicts
@@ -1010,7 +1005,6 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
         await state.set_state(DemanderMenu.main_menu)
         return
 
-    hits = res.get("hits", {}).get("hits", [])
     if not hits:
         await message.answer("نتیجه‌ای یافت نشد.")
         await state.set_state(DemanderMenu.main_menu)
