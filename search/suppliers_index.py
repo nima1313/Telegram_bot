@@ -361,18 +361,12 @@ async def search_suppliers(
 
 
 def _schedule(coro):
-    async def _wrapper():
-        try:
-            await coro
-        except Exception:
-            logging.exception(f"Error in scheduled background task for coro {coro.__name__}")
-
     try:
         loop = asyncio.get_running_loop()
-        loop.create_task(_wrapper())
+        loop.create_task(coro)
     except RuntimeError:
         # No running loop; best-effort fallback
-        asyncio.run(_wrapper())
+        asyncio.run(coro)
 
 
 def _after_insert(mapper, connection, target: Supplier):
