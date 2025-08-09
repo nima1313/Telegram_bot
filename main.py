@@ -63,7 +63,12 @@ async def main():
     dp.shutdown.register(on_shutdown)
     
     # شروع polling
-    await bot.delete_webhook(drop_pending_updates=True)
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+    except Exception as e:
+        logger.warning(f"delete_webhook failed: {e}. Continuing with polling...")
+
+    # If Telegram API is temporarily unreachable, let aiogram handle reconnects
     await dp.start_polling(bot)
 
 if __name__ == "__main__":

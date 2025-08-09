@@ -1,12 +1,13 @@
 import logging
 import os
 from aiogram import Router, F, types
-from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery, FSInputFile
+from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery, FSInputFile, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from database.models import User, Demander, UserRole, Supplier, Request, RequestStatus
+from database.connection import get_session
 from states.demander import (
     DemanderRegistration, DemanderMenu, DemanderEditProfile, DemanderSearch
 )
@@ -980,7 +981,13 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
             min_should_match=min_should,
             sort=None,
         )
-    hits = res.get("hits", {}).get("hits", [])
+        hits = res.get("hits", {}).get("hits", [])
+        # Log ES hit IDs (no _source by design)
+        try:
+            es_ids = [h.get("_id") for h in hits]
+            logging.info(f"ES hit IDs: {es_ids}")
+        except Exception as log_err:
+            logging.warning(f"Failed to log ES hits: {log_err}")
     except Exception as e:
         # Import ApiError here to avoid circular dependency issues if it were global
         from elasticsearch import ApiError
@@ -1080,14 +1087,15 @@ async def show_search_result(message: Message, state: FSMContext, result_index: 
     
     result = results[result_index]
     # Get supplier ID from search results
-    if "_source" in result:
-        supplier_id = result["_id"]
-    else:
-        supplier_id = result.get("id")
+    # When ES _source is disabled, hits contain only metadata including "_id"
+    supplier_id = None
+    if isinstance(result, dict):
+        supplier_id = result.get("_id") or result.get("id")
     
     # Get complete supplier data from PostgreSQL using the ID
     try:
-        supplier_id_int = int(supplier_id)
+        logging.info(f"Resolved supplier_id from ES hit: {supplier_id} (type={type(supplier_id).__name__})")
+        supplier_id_int = int(str(supplier_id))
         from sqlalchemy.orm import selectinload
         async for session in get_session():
             stmt = select(Supplier).options(selectinload(Supplier.user)).where(Supplier.id == supplier_id_int)
@@ -1122,6 +1130,11 @@ async def show_search_result(message: Message, state: FSMContext, result_index: 
                 "additional_notes": supplier.additional_notes,
                 "portfolio_photos": supplier.portfolio_photos,
             }
+            # Log DB supplier payload
+            try:
+                logging.info(f"DB supplier fetched for id={supplier_id_int}: {supplier_data}")
+            except Exception as log_err:
+                logging.warning(f"Failed to log DB supplier: {log_err}")
             break
     except (ValueError, TypeError) as e:
         logging.error(f"Error converting supplier_id to int: {e}")
@@ -1136,39 +1149,50 @@ async def show_search_result(message: Message, state: FSMContext, result_index: 
     profile_text = create_supplier_detail_text(supplier_data, result_index, len(results))
     
     # Get keyboard for navigation and actions
-    keyboard = get_search_result_keyboard(result_index, len(results), supplier_id)
+    keyboard = get_search_result_keyboard(result_index, len(results), int(str(supplier_id)))
     
     # Send profile picture if available
     portfolio_photos = supplier_data.get("portfolio_photos", [])
     if portfolio_photos:
-        photo_id = portfolio_photos[0]  # Use first photo
-        logging.info(f"Trying to send photo with ID: {photo_id}")
-        
+        # Send first photo with caption and keyboard, then up to one more photo without caption
+        first_photo = portfolio_photos[0]
+        logging.info(f"Trying to send first photo with ID/path: {first_photo}")
+        sent = False
         try:
-            # Try to send as Telegram file ID first
             await message.answer_photo(
-                photo=photo_id,
+                photo=first_photo,
                 caption=profile_text,
                 reply_markup=keyboard,
                 parse_mode="Markdown"
             )
-            return
+            sent = True
         except Exception as e:
-            logging.error(f"Failed to send photo with file ID {photo_id}: {e}")
-            
-            # Fallback: try as local file path (for development/testing)
-            if os.path.exists(photo_id):
+            logging.error(f"Failed to send first photo by file ID: {e}")
+            if os.path.exists(first_photo):
                 try:
-                    photo = FSInputFile(photo_id)
                     await message.answer_photo(
-                        photo=photo,
+                        photo=FSInputFile(first_photo),
                         caption=profile_text,
                         reply_markup=keyboard,
                         parse_mode="Markdown"
                     )
-                    return
+                    sent = True
                 except Exception as e2:
-                    logging.error(f"Failed to send photo as file {photo_id}: {e2}")
+                    logging.error(f"Failed to send first photo by path: {e2}")
+        # Optionally send second photo
+        if len(portfolio_photos) > 1:
+            second_photo = portfolio_photos[1]
+            try:
+                await message.answer_photo(photo=second_photo)
+            except Exception as e:
+                logging.warning(f"Failed to send second photo by ID, trying path. Error: {e}")
+                if os.path.exists(second_photo):
+                    try:
+                        await message.answer_photo(photo=FSInputFile(second_photo))
+                    except Exception as e2:
+                        logging.error(f"Failed to send second photo by path: {e2}")
+        if sent:
+            return
     
     # Send text-only message if no photo or photo failed
     await message.answer(
