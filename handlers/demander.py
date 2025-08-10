@@ -939,8 +939,8 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
         # hits here are already source-like dicts
 
     if not hits:
-        await message.answer("نتیجه‌ای یافت نشد.")
         await state.set_state(DemanderMenu.main_menu)
+        await message.answer("نتیجه‌ای یافت نشد.", reply_markup=get_demander_menu_keyboard())
         return
 
     # Store search results in state for navigation
