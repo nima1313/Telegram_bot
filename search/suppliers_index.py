@@ -8,7 +8,7 @@ from elasticsearch import AsyncElasticsearch, NotFoundError, ApiError
 from sqlalchemy import event
 
 from config.settings import settings
-from database.models import Supplier
+from database.models import Supplier, User
 
 _es_client: Optional[AsyncElasticsearch] = None
 
@@ -98,6 +98,7 @@ def _build_supplier_document(supplier: Supplier) -> Dict[str, Any]:
         "brand_experience": supplier.brand_experience,
         "additional_notes": supplier.additional_notes,
         "portfolio_photos": supplier.portfolio_photos,
+        "is_active": supplier.user.is_active if getattr(supplier, "user", None) else True,
         "search_text": _merge_text_fields(supplier),
         "created_at": _serialize_datetime(supplier.created_at),
         "updated_at": _serialize_datetime(supplier.updated_at),
@@ -248,6 +249,7 @@ async def ensure_suppliers_index() -> None:
                         "search_analyzer": "persian_search_analyzer"
                     },
                     "portfolio_photos": {"type": "keyword"},
+                    "is_active": {"type": "boolean"},
                     # قیمت‌های تکی برای کوئری‌پذیری بهتر
                     "price_hourly": {"type": "integer"},
                     "price_daily": {"type": "integer"},
@@ -316,9 +318,20 @@ async def search_suppliers(
 
     # Ensure 'must' is always a list of clauses
     must_list: List[Dict[str, Any]] = must_clauses if must_clauses else [{"match_all": {}}]
+    # Always restrict to active profiles; include docs with missing field for backward compatibility
+    base_filters: List[Dict[str, Any]] = list(filter_clauses or [])
+    base_filters.append({
+        "bool": {
+            "should": [
+                {"term": {"is_active": True}},
+                {"bool": {"must_not": {"exists": {"field": "is_active"}}}},
+            ],
+            "minimum_should_match": 1,
+        }
+    })
     bool_query: Dict[str, Any] = {
         "must": must_list,
-        "filter": filter_clauses or [],
+        "filter": base_filters,
     }
 
     if should:
@@ -376,6 +389,37 @@ def _after_delete(mapper, connection, target: Supplier):
     _schedule(delete_supplier_document(target.id))
 
 
+async def _update_is_active_for_user(user_id: int, is_active: bool) -> None:
+    """Update the is_active flag on all supplier docs for a given user via update-by-query."""
+    es = _get_es_client()
+    try:
+        await es.update_by_query(
+            index=SUPPLIERS_INDEX,
+            body={
+                "script": {
+                    "source": "ctx._source.is_active = params.is_active",
+                    "lang": "painless",
+                    "params": {"is_active": is_active},
+                },
+                "query": {"term": {"user_id": user_id}},
+            },
+            conflicts="proceed",
+            refresh=False,
+        )
+    except ApiError:
+        # Best-effort; ignore failures to avoid breaking main flow
+        return
+
+
+def _after_user_update(mapper, connection, target: User):
+    try:
+        # Only act when is_active changes; SQLAlchemy doesn't directly provide changed attrs here,
+        # so we always schedule and ES update will be idempotent.
+        _schedule(_update_is_active_for_user(target.id, target.is_active))
+    except Exception:
+        return
+
+
 async def init_elastic_indexing() -> None:
     # docker-compose healthcheck ensures ES is ready, so just create index
     await ensure_suppliers_index()
@@ -383,6 +427,7 @@ async def init_elastic_indexing() -> None:
     event.listen(Supplier, "after_insert", _after_insert, propagate=True)
     event.listen(Supplier, "after_update", _after_update, propagate=True)
     event.listen(Supplier, "after_delete", _after_delete, propagate=True)
+    event.listen(User, "after_update", _after_user_update, propagate=True)
 
 
 async def close_elastic() -> None:

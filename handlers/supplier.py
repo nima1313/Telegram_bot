@@ -46,6 +46,8 @@ from keyboards.reply import *
 from keyboards.inline import get_request_action_keyboard
 from utils.validators import validate_phone_number, validate_age, validate_height_weight, validate_price
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
+from sqlalchemy.orm import selectinload
+from search.suppliers_index import update_supplier_document
 
 # Constants for price types
 PRICE_TYPES = {
@@ -89,8 +91,6 @@ def get_price_types_keyboard():
     ]
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
-
-from sqlalchemy.orm import selectinload
 
 router = Router()
 
@@ -1546,6 +1546,18 @@ async def toggle_active_status(message: Message, state: FSMContext, session: Asy
     new_status = not user.is_active
     user.is_active = new_status
     await session.commit()
+
+    # Update ES document to reflect new active status
+    try:
+        if user.supplier_profile:
+            # Load supplier with related user to ensure accurate is_active in document
+            stmt = select(Supplier).options(selectinload(Supplier.user)).where(Supplier.id == user.supplier_profile.id)
+            result = await session.execute(stmt)
+            supplier = result.scalar_one_or_none()
+            if supplier:
+                await update_supplier_document(supplier)
+    except Exception as e:
+        logging.error(f"Failed to update ES document for supplier after active toggle: {e}")
 
     status_text = "فعال ✅" if new_status else "غیرفعال ❌"
     await message.answer(

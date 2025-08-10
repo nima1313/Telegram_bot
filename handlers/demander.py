@@ -910,6 +910,28 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
             logging.info(f"ES hit IDs: {es_ids}")
         except Exception as log_err:
             logging.warning(f"Failed to log ES hits: {log_err}")
+        # Filter out inactive suppliers based on DB (User.is_active == True)
+        try:
+            supplier_ids: list[int] = []
+            for h in hits:
+                sid = h.get("_id") if isinstance(h, dict) else None
+                if sid is not None:
+                    try:
+                        supplier_ids.append(int(str(sid)))
+                    except (ValueError, TypeError):
+                        continue
+            if supplier_ids:
+                from sqlalchemy import select
+                active_stmt = select(Supplier.id).join(User, Supplier.user_id == User.id).where(
+                    Supplier.id.in_(supplier_ids),
+                    User.is_active.is_(True)
+                )
+                result = await session.execute(active_stmt)
+                active_ids = set(int(r) for r in result.scalars().all())
+                # Preserve original order
+                hits = [h for h in hits if int(str(h.get("_id"))) in active_ids]
+        except Exception:
+            logging.exception("Failed to filter inactive suppliers from ES results")
     except Exception:
         logging.exception("Elasticsearch search failed, falling back to DB search")
         # Fallback to database search
@@ -1261,6 +1283,9 @@ async def _fallback_search_suppliers(session: AsyncSession, search: dict) -> lis
     It applies a subset of filters for a best-effort result.
     """
     stmt = select(Supplier)
+    # Only active users' suppliers
+    from database.models import User as _User
+    stmt = stmt.where(Supplier.user.has(_User.is_active.is_(True)))
     # gender filter
     if search.get("gender"):
         stmt = stmt.where(Supplier.gender == search["gender"]) 
