@@ -1441,3 +1441,35 @@ async def get_user_by_telegram_id(session: AsyncSession, telegram_id: str) -> Us
     stmt = select(User).options(selectinload(User.demander_profile)).where(User.telegram_id == telegram_id)
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
+
+# ========== Fallback: Recover demander main menu state after restarts ==========
+
+@router.message(F.text.in_({
+    "👤 مشاهده پروفایل",
+    "✏️ ویرایش پروفایل",
+    "📄 وضعیت درخواست‌ها",
+    "🔍 جست‌جوی تأمین‌کننده",
+    "🔙 بازگشت به منوی اصلی",
+}))
+async def demander_main_menu_fallback(message: Message, state: FSMContext, session: AsyncSession):
+    """Allow demander main menu actions to work even if FSM state was lost (e.g., after container restart)."""
+    # Verify the user is a demander
+    user = await get_user_by_telegram_id(session, str(message.from_user.id))
+    if not user or user.role != UserRole.DEMANDER:
+        return
+
+    # Restore expected menu state
+    await state.set_state(DemanderMenu.main_menu)
+
+    # Dispatch to the appropriate handler
+    text = message.text
+    if text == "👤 مشاهده پروفایل":
+        await view_profile(message, state, session)
+    elif text == "✏️ ویرایش پروفایل":
+        await edit_profile_start(message, state)
+    elif text == "📄 وضعیت درخواست‌ها":
+        await view_request_status(message, state, session)
+    elif text == "🔍 جست‌روی تأمین‌کننده" or text == "🔍 جست‌جوی تأمین‌کننده":
+        await start_advanced_search(message, state)
+    elif text == "🔙 بازگشت به منوی اصلی":
+        await back_to_main_menu(message, state)

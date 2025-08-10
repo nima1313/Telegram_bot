@@ -290,7 +290,7 @@ async def process_instagram_id(message: Message, state: FSMContext):
         # Ask for portfolio photos
         await message.answer(
                 "🖼 لطفاً نمونه کارهای خود را ارسال کنید.\n"
-                "می‌توانید چند عکس را به‌صورت آلبوم در یک پیام ارسال کنید یا تکی ارسال کنید.\n"
+                "می‌توانید چند عکس را به‌صورت آلبوم در یک پیام ارسال کنید یا تکی تکی ارسال کنید.\n"
                 "حداقل یک تصویر ارسال کنید.\n"
                 "پس از اتمام ارسال تصاویر، روی دکمه 'اتمام ارسال تصاویر' کلیک کنید.",
             reply_markup=get_finish_upload_keyboard()
@@ -2024,3 +2024,35 @@ def format_price_range(supplier: Supplier) -> str:
                 lines.append(f"- سبک {style_fa}: {int(price)*1000:,.0f} تومان")
 
     return "\n".join(lines) if lines else "قیمت توافقی"
+
+# ========== Fallback: Recover main menu state after restarts ==========
+
+@router.message(F.text.in_({
+    "👤 مشاهده پروفایل",
+    "✏️ ویرایش پروفایل",
+    "⚙️ تنظیمات",
+    "📨 درخواست‌های جدید",
+    "🔙 بازگشت به منوی اصلی",
+}))
+async def supplier_main_menu_fallback(message: Message, state: FSMContext, session: AsyncSession):
+    """Allow supplier main menu actions to work even if FSM state was lost (e.g., after container restart)."""
+    # Verify the user is a supplier
+    user = await get_user_by_telegram_id(session, str(message.from_user.id))
+    if not user or user.role != UserRole.SUPPLIER:
+        return
+
+    # Restore expected menu state
+    await state.set_state(SupplierMenu.main_menu)
+
+    # Dispatch to the appropriate handler
+    text = message.text
+    if text == "👤 مشاهده پروفایل":
+        await view_profile(message, state, session)
+    elif text == "✏️ ویرایش پروفایل":
+        await edit_profile_start(message, state)
+    elif text == "⚙️ تنظیمات":
+        await settings_start(message, state, session)
+    elif text == "📨 درخواست‌های جدید":
+        await view_new_requests(message, state, session)
+    elif text == "🔙 بازگشت به منوی اصلی":
+        await back_to_main_menu(message, state, session)

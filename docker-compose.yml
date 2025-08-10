@@ -38,6 +38,9 @@ services:
     image: redis:7-alpine
     container_name: bot_redis
     restart: always
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1000"]
+    volumes:
+      - redis_data:/data
     ports:
       - "6379:6379"
     networks:
@@ -90,6 +93,7 @@ services:
 volumes:
   postgres_data:
   es_data:
+  redis_data:
 
 networks:
   bot_network:
