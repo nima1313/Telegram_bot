@@ -141,3 +141,42 @@ def get_request_status_keyboard(current_index: int, total_requests: int):
 
     builder.adjust(len(nav_buttons) if nav_buttons else 1, 1)
     return builder.as_markup()
+
+
+def get_supplier_requests_keyboard(current_index: int, total_requests: int, request_id: int, is_pending: bool):
+    """کیبورد برای مرور درخواست‌های دریافتی تأمین‌کننده با ناوبری و اقدام"""
+    builder = InlineKeyboardBuilder()
+
+    # Navigation
+    nav_buttons = []
+    if current_index > 0:
+        nav_buttons.append(InlineKeyboardButton(
+            text="◀️ قبلی",
+            callback_data=f"sup_req_nav:prev:{current_index}"
+        ))
+    if current_index < total_requests - 1:
+        nav_buttons.append(InlineKeyboardButton(
+            text="بعدی ▶️",
+            callback_data=f"sup_req_nav:next:{current_index}"
+        ))
+    if nav_buttons:
+        builder.row(*nav_buttons)
+
+    # Actions for pending only
+    if is_pending:
+        builder.button(text="✅ پذیرش", callback_data=f"sup_req_accept:{request_id}")
+        builder.button(text="❌ رد", callback_data=f"sup_req_reject:{request_id}")
+
+    # Back
+    builder.button(text="🔙 بازگشت به منو", callback_data="back_to_supplier_menu_from_reqs")
+
+    if is_pending and nav_buttons:
+        builder.adjust(len(nav_buttons), 2, 1)
+    elif is_pending:
+        builder.adjust(2, 1)
+    elif nav_buttons:
+        builder.adjust(len(nav_buttons), 1)
+    else:
+        builder.adjust(1)
+
+    return builder.as_markup()

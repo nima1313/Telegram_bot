@@ -40,10 +40,10 @@ def format_pricing_data(pricing_data: dict) -> str:
 from database.models import User, Supplier, UserRole, Request, RequestStatus
 from states.supplier import (
     SupplierRegistration, SupplierMenu, SupplierEditProfile, 
-    SupplierSettings, PhotoEditState
+    SupplierSettings, PhotoEditState, SupplierRequests
 )
 from keyboards.reply import *
-from keyboards.inline import get_request_action_keyboard
+from keyboards.inline import get_request_action_keyboard, get_supplier_requests_keyboard
 from utils.validators import validate_phone_number, validate_age, validate_height_weight, validate_price
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from sqlalchemy.orm import selectinload
@@ -1577,39 +1577,31 @@ async def back_to_main_menu(message: Message, state: FSMContext, session: AsyncS
 
 @router.message(F.text == "📨 درخواست‌های جدید", SupplierMenu.main_menu)
 async def view_new_requests(message: Message, state: FSMContext, session: AsyncSession):
-    """مشاهده درخواست‌های جدید"""
+    """مشاهده درخواست‌ها با ناوبری و اقدام"""
     user = await get_user_by_telegram_id(session, str(message.from_user.id))
     if not user or not user.supplier_profile:
         await message.answer("پروفایل شما یافت نشد!")
         return
-    
-    # دریافت درخواست‌های در انتظار
-    stmt = select(Request).where(
+
+    # همه درخواست‌ها (آخرین‌ها اول)
+    from sqlalchemy.orm import selectinload
+    stmt = select(Request).options(
+        selectinload(Request.demander)
+    ).where(
         Request.supplier_id == user.supplier_profile.id,
-        Request.status == RequestStatus.PENDING
     ).order_by(Request.created_at.desc())
-    
+
     result = await session.execute(stmt)
     requests = result.scalars().all()
-    
+
     if not requests:
-        await message.answer("🔔 شما درخواست جدیدی ندارید.")
+        await message.answer("🔔 شما درخواستی ندارید.")
         return
-    
-    await message.answer(f"📨 شما {len(requests)} درخواست جدید دارید:")
-    
-    for req in requests[:5]:  # نمایش 5 درخواست اخیر
-        demander = req.demander
-        text = f"""
-🔸 درخواست از: {demander.full_name or 'بدون نام'}
-🏢 شرکت: {demander.company_name or '-'}
-📅 تاریخ: {req.created_at.strftime('%Y/%m/%d %H:%M')}
-💬 پیام: {req.message or 'بدون پیام'}
-"""
-        await message.answer(
-            text,
-            reply_markup=get_request_action_keyboard(req.id)
-        )
+
+    await state.update_data(supplier_requests=[r.id for r in requests], supplier_requests_index=0)
+    await state.set_state(SupplierRequests.viewing_requests)
+
+    await show_supplier_request(message, state, session, 0)
 
 # ========== Callback Handlers ==========
 
@@ -1737,6 +1729,215 @@ async def reject_request(callback: CallbackQuery, session: AsyncSession):
         callback.message.text + "\n\n❌ درخواست رد شد.",
         reply_markup=None
     )
+    await callback.answer("درخواست رد شد!")
+
+
+@router.callback_query(F.data.startswith("sup_req_nav:"), SupplierRequests.viewing_requests)
+async def supplier_requests_nav(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
+    data = await state.get_data()
+    ids: list[int] = data.get("supplier_requests", [])
+    idx = data.get("supplier_requests_index", 0)
+    _, action, raw_idx = callback.data.split(":", 2)
+    try:
+        _ = int(raw_idx)
+    except ValueError:
+        pass
+    new_idx = idx
+    if action == "prev" and idx > 0:
+        new_idx = idx - 1
+    elif action == "next" and idx < max(0, len(ids) - 1):
+        new_idx = idx + 1
+
+    if new_idx == idx:
+        await callback.answer("صفحه‌ای نیست")
+        return
+
+    await state.update_data(supplier_requests_index=new_idx)
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+    await show_supplier_request(callback.message, state, session, new_idx)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "back_to_supplier_menu_from_reqs", SupplierRequests.viewing_requests)
+async def back_to_supplier_menu_from_reqs(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(SupplierMenu.main_menu)
+    await callback.message.edit_text("بازگشت به منوی تأمین‌کننده")
+    await callback.message.answer("به منوی تأمین‌کننده بازگشتید.", reply_markup=get_supplier_menu_keyboard())
+    await callback.answer()
+
+
+async def show_supplier_request(message_or_cb_message: Message, state: FSMContext, session: AsyncSession, index: int):
+    data = await state.get_data()
+    ids: list[int] = data.get("supplier_requests", [])
+    if not ids:
+        await message_or_cb_message.answer("درخواستی برای نمایش نیست.")
+        return
+    index = max(0, min(index, len(ids) - 1))
+
+    from sqlalchemy.orm import selectinload
+    stmt = select(Request).options(
+        selectinload(Request.demander),
+        selectinload(Request.supplier)
+    ).where(Request.id == ids[index])
+    result = await session.execute(stmt)
+    req = result.scalar_one_or_none()
+    if not req:
+        await message_or_cb_message.answer("درخواست یافت نشد.")
+        return
+
+    status_map = {
+        RequestStatus.PENDING: ("⏳", "در انتظار پاسخ"),
+        RequestStatus.ACCEPTED: ("✅", "پذیرفته شده"),
+        RequestStatus.REJECTED: ("❌", "رد شده"),
+        RequestStatus.CANCELLED: ("🚫", "لغو شده"),
+    }
+    emoji, status_name = status_map.get(req.status, ("❓", "نامشخص"))
+    created = req.created_at.strftime('%Y/%m/%d %H:%M') if req.created_at else '-'
+    demander = req.demander
+    demander_phone = req.demander_phone or (demander.phone_number if demander else None)
+
+    text = f"""
+{emoji} وضعیت: {status_name}
+👤 درخواست‌کننده: {getattr(demander, 'full_name', '-')}
+🏢 شرکت: {getattr(demander, 'company_name', '-')}
+📅 تاریخ: {created}
+💬 پیام: {req.message or '-'}
+📞 تماس درخواست‌کننده: {demander_phone or '-'}
+""".strip()
+
+    is_pending = req.status == RequestStatus.PENDING
+    kb = get_supplier_requests_keyboard(index, len(ids), req.id, is_pending)
+    await message_or_cb_message.answer(text, reply_markup=kb)
+
+
+@router.callback_query(F.data.startswith("sup_req_accept:"), SupplierRequests.viewing_requests)
+async def supplier_accept_from_list(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
+    request_id = int(callback.data.split(":")[1])
+    from sqlalchemy.orm import selectinload
+    stmt = select(Request).options(
+        selectinload(Request.demander),
+        selectinload(Request.supplier)
+    ).where(Request.id == request_id)
+    result = await session.execute(stmt)
+    request = result.scalar_one_or_none()
+
+    if not request:
+        await callback.answer("درخواست یافت نشد!", show_alert=True)
+        return
+
+    if request.status != RequestStatus.PENDING:
+        await callback.answer("این درخواست قبلاً پردازش شده است!", show_alert=True)
+        # Refresh current view
+        data = await state.get_data()
+        idx = data.get("supplier_requests_index", 0)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await show_supplier_request(callback.message, state, session, idx)
+        return
+
+    # Update and notify demander
+    request.status = RequestStatus.ACCEPTED
+    request.updated_at = datetime.utcnow()
+    await session.commit()
+
+    try:
+        demander_user_stmt = select(User).where(User.id == request.demander.user_id)
+        demander_user_result = await session.execute(demander_user_stmt)
+        demander_user = demander_user_result.scalar_one_or_none()
+        if demander_user:
+            supplier_phone = request.supplier.phone_number or "در دسترس نیست"
+            notification_text = f"""
+✅ درخواست شما پذیرفته شد!
+
+👤 تأمین‌کننده: {request.supplier.full_name}
+📱 شماره تماس: {supplier_phone}
+
+📝 درخواست شما:
+{request.message}
+""".strip()
+            await callback.bot.send_message(
+                chat_id=demander_user.telegram_id,
+                text=notification_text
+            )
+    except Exception as e:
+        logging.error(f"Failed to notify demander on accept (list): {e}")
+
+    # Refresh current view
+    data = await state.get_data()
+    idx = data.get("supplier_requests_index", 0)
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+    await show_supplier_request(callback.message, state, session, idx)
+    await callback.answer("درخواست پذیرفته شد!")
+
+
+@router.callback_query(F.data.startswith("sup_req_reject:"), SupplierRequests.viewing_requests)
+async def supplier_reject_from_list(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
+    request_id = int(callback.data.split(":")[1])
+    from sqlalchemy.orm import selectinload
+    stmt = select(Request).options(
+        selectinload(Request.demander),
+        selectinload(Request.supplier)
+    ).where(Request.id == request_id)
+    result = await session.execute(stmt)
+    request = result.scalar_one_or_none()
+
+    if not request:
+        await callback.answer("درخواست یافت نشد!", show_alert=True)
+        return
+
+    if request.status != RequestStatus.PENDING:
+        await callback.answer("این درخواست قبلاً پردازش شده است!", show_alert=True)
+        # Refresh current view
+        data = await state.get_data()
+        idx = data.get("supplier_requests_index", 0)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await show_supplier_request(callback.message, state, session, idx)
+        return
+
+    request.status = RequestStatus.REJECTED
+    request.updated_at = datetime.utcnow()
+    await session.commit()
+
+    # Notify demander about rejection
+    try:
+        demander_user_stmt = select(User).where(User.id == request.demander.user_id)
+        demander_user_result = await session.execute(demander_user_stmt)
+        demander_user = demander_user_result.scalar_one_or_none()
+        if demander_user:
+            notification_text = f"""
+❌ درخواست شما رد شد
+
+👤 تأمین‌کننده: {request.supplier.full_name}
+
+📝 درخواست شما:
+{request.message}
+""".strip()
+            await callback.bot.send_message(
+                chat_id=demander_user.telegram_id,
+                text=notification_text
+            )
+    except Exception as e:
+        logging.error(f"Failed to notify demander on reject (list): {e}")
+
+    # Refresh current view
+    data = await state.get_data()
+    idx = data.get("supplier_requests_index", 0)
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+    await show_supplier_request(callback.message, state, session, idx)
     await callback.answer("درخواست رد شد!")
 
 # ========== Photo Management Handlers ==========

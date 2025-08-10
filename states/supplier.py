@@ -62,3 +62,8 @@ class PhotoEditState(StatesGroup):
     removing_photos = State()
 
 
+class SupplierRequests(StatesGroup):
+    """نمایش و مدیریت درخواست‌های دریافتی تأمین‌کننده"""
+    viewing_requests = State()
+
+
