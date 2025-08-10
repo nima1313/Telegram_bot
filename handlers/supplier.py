@@ -289,10 +289,10 @@ async def process_instagram_id(message: Message, state: FSMContext):
     else:
         # Ask for portfolio photos
         await message.answer(
-            "🖼 لطفاً نمونه کارهای خود را ارسال کنید.\n"
-            "(لطفا آن ها را تک تک ارسال کنید)\n"
-            "حداقل یک تصویر ارسال کنید.\n"
-            "پس از اتمام ارسال تصاویر، روی دکمه 'اتمام ارسال تصاویر' کلیک کنید.",
+                "🖼 لطفاً نمونه کارهای خود را ارسال کنید.\n"
+                "می‌توانید چند عکس را به‌صورت آلبوم در یک پیام ارسال کنید یا تکی ارسال کنید.\n"
+                "حداقل یک تصویر ارسال کنید.\n"
+                "پس از اتمام ارسال تصاویر، روی دکمه 'اتمام ارسال تصاویر' کلیک کنید.",
             reply_markup=get_finish_upload_keyboard()
         )
         await state.update_data(portfolio_photos=[])
@@ -331,10 +331,14 @@ async def process_portfolio_photos(message: Message, state: FSMContext):
         # ذخیره file_id عکس
         portfolio_photos.append(message.photo[-1].file_id)
         await state.update_data(portfolio_photos=portfolio_photos)
-        await message.answer(
-            f"✅ تصویر {len(portfolio_photos)} اضافه شد.\n"
-            "می‌توانید تصویر دیگری ارسال کنید یا روی دکمه 'اتمام ارسال تصاویر' کلیک کنید."
-        )
+        if message.media_group_id:
+            await message.answer(f"✅ تصویر {len(portfolio_photos)} اضافه شد\n"
+                                 "می‌توانید تصویر دیگری ارسال کنید یا روی دکمه 'اتمام ارسال تصاویر' کلیک کنید.")
+        else:
+            await message.answer(
+                f"✅ تصویر {len(portfolio_photos)} اضافه شد.\n"
+                "می‌توانید تصویر دیگری ارسال کنید یا روی دکمه 'اتمام ارسال تصاویر' کلیک کنید."
+            )
     else:
         await message.answer("❌ لطفاً یک تصویر ارسال کنید.")
 
@@ -1276,7 +1280,10 @@ async def registration_add_photo(message: Message, state: FSMContext):
     photos = data.get('portfolio_photos', [])
     photos.append(message.photo[-1].file_id)
     await state.update_data(portfolio_photos=photos)
-    await message.answer(f"✅ تصویر {len(photos)} اضافه شد.")
+    if message.media_group_id:
+        await message.answer(f"✅ تصویر {len(photos)} اضافه شد")
+    else:
+        await message.answer(f"✅ تصویر {len(photos)} اضافه شد.")
 
 @router.message(SupplierRegistration.adding_photos, F.text == "✅ اتمام ارسال تصاویر")
 async def registration_finish_adding_photos(message: Message, state: FSMContext):
@@ -1795,10 +1802,14 @@ async def add_photos(message: Message, state: FSMContext, session: AsyncSession)
         current_photos = data.get('current_photos', [])
         current_photos.append(message.photo[-1].file_id)
         await state.update_data(current_photos=current_photos)
-        await message.answer(
-            f"✅ تصویر {len(current_photos)} اضافه شد.\n"
-            "می‌توانید تصویر دیگری ارسال کنید یا روی دکمه 'اتمام ارسال تصاویر' کلیک کنید."
-        )
+        if message.media_group_id:
+            await message.answer(f"✅ تصویر {len(current_photos)} اضافه شد\n"
+                                 "می‌توانید تصویر دیگری ارسال کنید یا روی دکمه 'اتمام ارسال تصاویر' کلیک کنید.")
+        else:
+            await message.answer(
+                f"✅ تصویر {len(current_photos)} اضافه شد.\n"
+                "می‌توانید تصویر دیگری ارسال کنید یا روی دکمه 'اتمام ارسال تصاویر' کلیک کنید."
+            )
     else:
         await message.answer("❌ لطفاً یک تصویر ارسال کنید.")
 

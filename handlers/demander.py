@@ -1351,7 +1351,9 @@ def create_supplier_detail_text(supplier_data: dict, current_index: int, total_r
                     "religious": "مذهبی",
                     "children": "کودک",
                     "sports": "ورزشی",
-                    "artistic": "هنری"
+                    "artistic": "هنری",
+                    "outdoor": "فضای باز",
+                    "studio": "استودیویی"
                 }.get(cat, cat)
                 category_prices.append(f"{cat_name}: {int(price)*1000:,.0f} تومان")
             if category_prices:
