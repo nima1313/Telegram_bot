@@ -9,7 +9,8 @@ from sqlalchemy import select
 from database.models import User, Demander, UserRole, Supplier, Request, RequestStatus
 from database.connection import get_session
 from states.demander import (
-    DemanderRegistration, DemanderMenu, DemanderEditProfile, DemanderSearch
+    DemanderRegistration, DemanderMenu, DemanderEditProfile, DemanderSearch,
+    DemanderRequests,
 )
 from keyboards.reply import (
     get_demander_search_gender_keyboard,
@@ -31,6 +32,7 @@ from keyboards.inline import (
     get_search_result_keyboard,
     get_request_message_keyboard,
     get_request_action_keyboard,
+    get_request_status_keyboard,
 )
 from utils.validators import validate_phone_number
 from utils.users import get_or_create_user
@@ -954,57 +956,31 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
 
 @router.message(F.text == "📄 وضعیت درخواست‌ها", DemanderMenu.main_menu)
 async def view_request_status(message: Message, state: FSMContext, session: AsyncSession):
-    """مشاهده وضعیت درخواست‌ها"""
-    # Get demander info
+    """مشاهده وضعیت درخواست‌ها - نمایش صفحه‌ای"""
     user = await get_user_by_telegram_id(session, str(message.from_user.id))
     if not user or not user.demander_profile:
         await message.answer("خطا در دریافت اطلاعات کاربری.")
         return
-    
+
     demander = user.demander_profile
-    
-    # Get requests with supplier info
+
     from sqlalchemy.orm import selectinload
     requests_stmt = select(Request).options(
         selectinload(Request.supplier)
     ).where(Request.demander_id == demander.id).order_by(Request.created_at.desc())
-    
+
     result = await session.execute(requests_stmt)
     requests = result.scalars().all()
-    
+
     if not requests:
         await message.answer("شما هنوز هیچ درخواستی ارسال نکرده‌اید.")
         return
-    
-    # Format request list
-    status_text = "📄 **وضعیت درخواست‌های شما:**\n\n"
-    
-    for i, req in enumerate(requests, 1):
-        status_emoji = {
-            RequestStatus.PENDING: "⏳",
-            RequestStatus.ACCEPTED: "✅", 
-            RequestStatus.REJECTED: "❌"
-        }.get(req.status, "❓")
-        
-        status_name = {
-            RequestStatus.PENDING: "در انتظار پاسخ",
-            RequestStatus.ACCEPTED: "پذیرفته شده",
-            RequestStatus.REJECTED: "رد شده"
-        }.get(req.status, "نامشخص")
-        
-        # Format date
-        created_date = req.created_at.strftime("%Y/%m/%d %H:%M")
-        
-        status_text += f"""**{i}.** {status_emoji} **{status_name}**
-👤 تأمین‌کننده: {req.supplier.full_name}
-📅 تاریخ ارسال: {created_date}
-📝 پیام: {req.message[:50]}{'...' if len(req.message) > 50 else ''}
 
-"""
-    
-    status_text += "💡 برای مشاهده جزئیات بیشتر و ارسال درخواست جدید، از منوی جست‌وجو استفاده کنید."
-    
-    await message.answer(status_text, parse_mode="Markdown")
+    await state.update_data(demander_requests=[r.id for r in requests], current_request_index=0)
+    await state.set_state(DemanderRequests.viewing_status)
+
+    await message.answer("📄 وضعیت درخواست‌ها", reply_markup=ReplyKeyboardRemove())
+    await show_single_request(message, state, session, 0)
 
 @router.message(F.text == "🔙 بازگشت به منوی اصلی", DemanderMenu.main_menu)
 async def back_to_main_menu(message: Message, state: FSMContext):
@@ -1498,3 +1474,114 @@ async def demander_main_menu_fallback(message: Message, state: FSMContext, sessi
         await start_advanced_search(message, state)
     elif text == "🔙 بازگشت به منوی اصلی":
         await back_to_main_menu(message, state)
+
+# ======================= Request Status (Paginated) ===========================
+
+async def format_request_detail_text(request: Request, index: int, total: int) -> str:
+    status_map = {
+        RequestStatus.PENDING: ("⏳", "در انتظار پاسخ"),
+        RequestStatus.ACCEPTED: ("✅", "پذیرفته شده"),
+        RequestStatus.REJECTED: ("❌", "رد شده"),
+        RequestStatus.CANCELLED: ("🚫", "لغو شده"),
+    }
+    emoji, status_name = status_map.get(request.status, ("❓", "نامشخص"))
+    created = request.created_at.strftime("%Y/%m/%d %H:%M") if request.created_at else "-"
+
+    supplier = request.supplier
+    # Build supplier data to reuse supplier detail renderer (without phone)
+    supplier_data = {
+        "full_name": getattr(supplier, "full_name", None),
+        "gender": getattr(supplier, "gender", None),
+        "age": getattr(supplier, "age", None),
+        "instagram_id": getattr(supplier, "instagram_id", None),
+        "height": getattr(supplier, "height", None),
+        "weight": getattr(supplier, "weight", None),
+        "hair_color": getattr(supplier, "hair_color", None),
+        "eye_color": getattr(supplier, "eye_color", None),
+        "skin_color": getattr(supplier, "skin_color", None),
+        "top_size": getattr(supplier, "top_size", None),
+        "bottom_size": getattr(supplier, "bottom_size", None),
+        "special_features": getattr(supplier, "special_features", None),
+        "pricing_data": getattr(supplier, "pricing_data", None),
+        "city": getattr(supplier, "city", None),
+        "area": getattr(supplier, "area", None),
+        "cooperation_types": getattr(supplier, "cooperation_types", None),
+        "work_styles": getattr(supplier, "work_styles", None),
+        "brand_experience": getattr(supplier, "brand_experience", None),
+        "additional_notes": getattr(supplier, "additional_notes", None),
+        "portfolio_photos": getattr(supplier, "portfolio_photos", None),
+    }
+
+    details = create_supplier_detail_text(supplier_data, index, total)
+    # Append request-specific info
+    base = f"{details}\n\n{emoji} وضعیت: {status_name}\n📅 تاریخ ارسال: {created}\n📝 پیام شما: {request.message or '-'}"
+
+    # Show supplier phone only when accepted
+    if request.status == RequestStatus.ACCEPTED:
+        phone = getattr(supplier, 'phone_number', None) or '-'
+        base += f"\n📱 شماره تماس تأمین‌کننده: {phone}"
+
+    return base
+
+
+async def show_single_request(message_or_cb_message: Message, state: FSMContext, session: AsyncSession, index: int):
+    data = await state.get_data()
+    id_list: list[int] = data.get("demander_requests", [])
+    if not id_list:
+        await message_or_cb_message.answer("هیچ درخواستی یافت نشد.")
+        await state.set_state(DemanderMenu.main_menu)
+        return
+    if index < 0 or index >= len(id_list):
+        index = max(0, min(index, len(id_list) - 1))
+
+    # Load request with supplier relation fresh
+    from sqlalchemy.orm import selectinload
+    stmt = select(Request).options(selectinload(Request.supplier)).where(Request.id == id_list[index])
+    result = await session.execute(stmt)
+    request_obj = result.scalar_one_or_none()
+    if not request_obj:
+        await message_or_cb_message.answer("درخواست یافت نشد.")
+        return
+
+    text = await format_request_detail_text(request_obj, index, len(id_list))
+    kb = get_request_status_keyboard(index, len(id_list))
+    await message_or_cb_message.answer(text, reply_markup=kb, parse_mode="Markdown")
+
+
+@router.callback_query(F.data.startswith("req_status_nav:"), DemanderRequests.viewing_status)
+async def handle_request_status_nav(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
+    data = await state.get_data()
+    id_list: list[int] = data.get("demander_requests", [])
+    current_index = data.get("current_request_index", 0)
+    _, action, raw_index = callback.data.split(":" , 2)
+    try:
+        raw_idx = int(raw_index)
+    except ValueError:
+        raw_idx = current_index
+
+    new_index = current_index
+    if action == "prev" and current_index > 0:
+        new_index = current_index - 1
+    elif action == "next" and current_index < max(0, len(id_list) - 1):
+        new_index = current_index + 1
+
+    if new_index == current_index:
+        await callback.answer("صفحه‌ای برای نمایش نیست")
+        return
+
+    await state.update_data(current_request_index=new_index)
+    # Replace the view
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+    await show_single_request(callback.message, state, session, new_index)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "back_to_demander_menu_from_status", DemanderRequests.viewing_status)
+async def back_to_menu_from_status(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(DemanderMenu.main_menu)
+    await callback.message.edit_text("بازگشت به منوی درخواست‌کننده")
+    await callback.message.answer("به منوی درخواست‌کننده بازگشتید.", reply_markup=get_demander_menu_keyboard())
+    await callback.answer()

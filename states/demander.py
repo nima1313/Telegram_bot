@@ -39,3 +39,8 @@ class DemanderEditProfile(StatesGroup):
     """فرآیند ویرایش پروفایل درخواست‌کننده"""
     choosing_field = State()
     entering_value = State()
+
+
+class DemanderRequests(StatesGroup):
+    """نمایش وضعیت درخواست‌ها با ناوبری"""
+    viewing_status = State()
