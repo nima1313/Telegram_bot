@@ -1874,14 +1874,14 @@ def create_supplier_summary(data: dict) -> str:
     }
     
     work_styles_fa = {
-        'fashion': 'فشن',
-        'advertising': 'تبلیغاتی',
-        'religious': 'مذهبی',
-        'children': 'کودک',
-        'sports': 'ورزشی',
-        'artistic': 'هنری',
-        'outdoor': 'فضای باز',
-        'studio': 'استودیویی'
+        'fashion': 'فشن/کت وات',
+            'advertising': 'تبلیغاتی / برندینگ',
+            'religious': 'مذهبی / پوشیده',
+            'children': 'کودک',
+            'sports': 'ورزشی',
+            'artistic': 'هنری / خاص',
+            'outdoor': 'فضای باز',
+            'studio': 'استودیویی',
     }
     
     summary = f"""
@@ -1926,14 +1926,14 @@ def create_supplier_profile_text(supplier: Supplier) -> str:
     }
     
     work_styles_fa = {
-        'fashion': 'فشن',
-        'advertising': 'تبلیغاتی',
-        'religious': 'مذهبی',
-        'children': 'کودک',
-        'sports': 'ورزشی',
-        'artistic': 'هنری',
-        'outdoor': 'فضای باز',
-        'studio': 'استودیویی'
+        'fashion': 'فشن/کت وات',
+            'advertising': 'تبلیغاتی / برندینگ',
+            'religious': 'مذهبی / پوشیده',
+            'children': 'کودک',
+            'sports': 'ورزشی',
+            'artistic': 'هنری / خاص',
+            'outdoor': 'فضای باز',
+            'studio': 'استودیویی',
     }
     
     profile = f"""
@@ -1949,7 +1949,7 @@ def create_supplier_profile_text(supplier: Supplier) -> str:
 
 📊 مشخصات:
 - {supplier.gender} - {supplier.age} ساله
-- قد: {supplier.height} cm | وزن: {supplier.weight} kg
+- قد: {supplier.height} سانتی‌متر | وزن: {supplier.weight} کیلوگرم
 - موی {supplier.hair_color} | چشم {supplier.eye_color}
 """
     
@@ -1997,8 +1997,19 @@ def format_price_range(supplier: Supplier) -> str:
     category_prices = supplier.pricing_data.get("category_based")
     if isinstance(category_prices, dict) and category_prices:
         lines.append("قیمت‌گذاری بر اساس سبک:")
+        style_names_fa = {
+            'fashion': 'فشن/کت وات',
+            'advertising': 'تبلیغاتی / برندینگ',
+            'religious': 'مذهبی / پوشیده',
+            'children': 'کودک',
+            'sports': 'ورزشی',
+            'artistic': 'هنری / خاص',
+            'outdoor': 'فضای باز',
+            'studio': 'استودیویی',
+        }
         for style, price in category_prices.items():
             if isinstance(price, (int, float)):
-                lines.append(f"  - سبک {style}: {int(price)*1000:,.0f} تومان")
+                style_fa = style_names_fa.get(style, style)
+                lines.append(f"- سبک {style_fa}: {int(price)*1000:,.0f} تومان")
 
     return "\n".join(lines) if lines else "قیمت توافقی"
