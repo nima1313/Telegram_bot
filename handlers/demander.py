@@ -12,7 +12,7 @@ from states.demander import (
     DemanderRegistration, DemanderMenu, DemanderEditProfile, DemanderSearch
 )
 from keyboards.reply import (
-    get_gender_keyboard,
+    get_demander_search_gender_keyboard,
     get_back_keyboard,
     get_skip_keyboard,
     get_confirm_keyboard,
@@ -488,7 +488,7 @@ async def pick_categories(message: Message, state: FSMContext):
             await message.answer("لطفاً حداقل یک دسته‌بندی را انتخاب کنید.")
             return
         await state.update_data(search={**search, "categories": list(selected)})
-        await message.answer("جنسیت مورد نظر را انتخاب کنید:", reply_markup=get_gender_keyboard())
+        await message.answer("جنسیت مورد نظر را انتخاب کنید:", reply_markup=get_demander_search_gender_keyboard())
         await state.set_state(DemanderSearch.gender)
         return
 
@@ -516,11 +516,16 @@ async def pick_gender(message: Message, state: FSMContext):
         await state.set_state(DemanderSearch.categories)
         return
 
-    if message.text not in ["👨 مرد", "👩 زن"]:
+    if message.text not in ["👨 مرد", "👩 زن", "🤷 مهم نیست"]:
         await message.answer("لطفاً یکی از گزینه‌ها را انتخاب کنید.")
         return
 
-    gender = "مرد" if message.text == "👨 مرد" else "زن"
+    gender = None
+    if message.text == "👨 مرد":
+        gender = "مرد"
+    elif message.text == "👩 زن":
+        gender = "زن"
+    # If "مهم نیست", gender remains None
     data = await state.get_data()
     search = data.get("search", {})
     await state.update_data(search={**search, "gender": gender})
@@ -539,7 +544,7 @@ async def pick_cooperation_types(message: Message, state: FSMContext):
     selected = set(search.get("cooperation_types", []))
 
     if message.text == "↩️ بازگشت":
-        await message.answer("جنسیت را انتخاب کنید:", reply_markup=get_gender_keyboard())
+        await message.answer("جنسیت را انتخاب کنید:", reply_markup=get_demander_search_gender_keyboard())
         await state.set_state(DemanderSearch.gender)
         return
 

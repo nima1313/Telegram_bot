@@ -1,7 +1,7 @@
 """Add new pricing structure
 
 Revision ID: 004_add_new_pricing
-Revises: 003_add_search_history
+Revises: 003
 Create Date: 2025-08-03
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '004_add_new_pricing'
-down_revision = '003_add_search_history'
+down_revision = '003'
 branch_labels = None
 depends_on = None
 
