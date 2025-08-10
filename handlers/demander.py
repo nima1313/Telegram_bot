@@ -924,6 +924,8 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
     # Store search results in state for navigation
     await state.update_data(search_results=hits, current_result_index=0)
     await state.set_state(DemanderSearch.viewing_results)
+    # Remove reply keyboard so only inline navigation/back buttons are available
+    await message.answer("🔎 نتایج جست‌وجو", reply_markup=ReplyKeyboardRemove())
     
     # Show the first result
     await show_search_result(message, state, 0)
@@ -1231,12 +1233,15 @@ async def process_request_message(message: Message, state: FSMContext, session: 
     except Exception as e:
         logging.error(f"Failed to send notification to supplier: {e}")
     
+    # Inform the demander and return to viewing the current result options (do not go to the menu)
     await message.answer(
         "✅ درخواست شما با موفقیت ارسال شد!\n\n"
-        "تأمین‌کننده اطلاع‌رسانی شده و به محض پاسخ، به شما اطلاع داده خواهد شد.",
-        reply_markup=get_demander_menu_keyboard()
+        "تأمین‌کننده اطلاع‌رسانی شده و به محض پاسخ، به شما اطلاع داده خواهد شد."
     )
-    await state.set_state(DemanderMenu.main_menu)
+    await state.set_state(DemanderSearch.viewing_results)
+    data = await state.get_data()
+    current_index = data.get("current_result_index", 0)
+    await show_search_result(message, state, current_index)
 
 @router.callback_query(F.data == "cancel_send_request", DemanderSearch.writing_request_message)
 async def cancel_send_request(callback: CallbackQuery, state: FSMContext):
