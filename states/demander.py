@@ -9,6 +9,8 @@ class DemanderSearch(StatesGroup):
     category_price_range = State()
     city = State()
     height_range = State()
+    top_size_range = State()
+    bottom_size_range = State()
     hair_color = State()
     skin_color = State()
     notes = State()

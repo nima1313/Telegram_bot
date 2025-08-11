@@ -64,8 +64,8 @@ class Supplier(Base):
     hair_color = Column(String(50))
     eye_color = Column(String(50))
     skin_color = Column(String(50))
-    top_size = Column(String(10))
-    bottom_size = Column(String(10))
+    top_size = Column(Integer)
+    bottom_size = Column(Integer)
     special_features = Column(Text)
     
     # اطلاعات همکاری

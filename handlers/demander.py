@@ -462,6 +462,8 @@ async def start_advanced_search(message: Message, state: FSMContext):
             "category_price_filters": {},  # style -> {gte,lte}
             "city": None,
             "height": None,  # {gte,lte}
+            "top_size": None,  # {gte,lte}
+            "bottom_size": None,  # {gte,lte}
             "hair_color": None,
             "skin_color": None,
             "notes": None,
@@ -773,6 +775,50 @@ async def enter_height_range(message: Message, state: FSMContext):
         gte, lte = rng
         await state.update_data(search={**search, "height": {k: v for k, v in {"gte": gte, "lte": lte}.items() if v is not None}})
 
+    # Next: top size
+    await message.answer("محدوده سایز بالاتنه مورد نظر (عدد) را وارد کنید، مانند 36-42، یا 'مهم نیست'.", reply_markup=get_doesnt_matter_keyboard())
+    from states.demander import DemanderSearch as _DS
+    await state.set_state(_DS.top_size_range)
+
+@router.message(DemanderSearch.top_size_range)
+async def enter_top_size_range(message: Message, state: FSMContext):
+    data = await state.get_data()
+    search = data.get("search", {})
+    if message.text == "↩️ بازگشت":
+        await message.answer("محدوده قد مورد نظر (سانتی‌متر) را وارد کنید، مانند 165-185، یا 'مهم نیست'.", reply_markup=get_doesnt_matter_keyboard())
+        await state.set_state(DemanderSearch.height_range)
+        return
+    if message.text == "🤷 مهم نیست":
+        await state.update_data(search={**search, "top_size": None})
+    else:
+        rng = _parse_min_max(message.text)
+        if not rng:
+            await message.answer("فرمت محدوده معتبر نیست. مثال: 36-42 یا 'مهم نیست'.")
+            return
+        gte, lte = rng
+        await state.update_data(search={**search, "top_size": {k: v for k, v in {"gte": gte, "lte": lte}.items() if v is not None}})
+
+    await message.answer("محدوده سایز پایین‌تنه مورد نظر (عدد) را وارد کنید، مانند 38-44، یا 'مهم نیست'.", reply_markup=get_doesnt_matter_keyboard())
+    await state.set_state(DemanderSearch.bottom_size_range)
+
+@router.message(DemanderSearch.bottom_size_range)
+async def enter_bottom_size_range(message: Message, state: FSMContext):
+    data = await state.get_data()
+    search = data.get("search", {})
+    if message.text == "↩️ بازگشت":
+        await message.answer("محدوده سایز بالاتنه مورد نظر (عدد) را وارد کنید.", reply_markup=get_doesnt_matter_keyboard())
+        await state.set_state(DemanderSearch.top_size_range)
+        return
+    if message.text == "🤷 مهم نیست":
+        await state.update_data(search={**search, "bottom_size": None})
+    else:
+        rng = _parse_min_max(message.text)
+        if not rng:
+            await message.answer("فرمت محدوده معتبر نیست. مثال: 38-44 یا 'مهم نیست'.")
+            return
+        gte, lte = rng
+        await state.update_data(search={**search, "bottom_size": {k: v for k, v in {"gte": gte, "lte": lte}.items() if v is not None}})
+
     await message.answer("رنگ مو (برای اولویت‌بندی، اختیاری) را وارد کنید یا 'مهم نیست'.", reply_markup=get_doesnt_matter_keyboard())
     await state.set_state(DemanderSearch.hair_color)
 
@@ -780,8 +826,8 @@ async def enter_height_range(message: Message, state: FSMContext):
 @router.message(DemanderSearch.hair_color)
 async def enter_hair_color(message: Message, state: FSMContext):
     if message.text == "↩️ بازگشت":
-        await message.answer("محدوده قد را وارد کنید.", reply_markup=get_doesnt_matter_keyboard())
-        await state.set_state(DemanderSearch.height_range)
+        await message.answer("محدوده سایز پایین‌تنه را وارد کنید.", reply_markup=get_doesnt_matter_keyboard())
+        await state.set_state(DemanderSearch.bottom_size_range)
         return
     hair = None if message.text == "🤷 مهم نیست" else message.text.strip()
     data = await state.get_data()
@@ -864,6 +910,11 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
     # Height filter
     if search.get("height"):
         filters.append({"range": {"height": search["height"]}})
+    # Size filters
+    if search.get("top_size"):
+        filters.append({"range": {"top_size": search["top_size"]}})
+    if search.get("bottom_size"):
+        filters.append({"range": {"bottom_size": search["bottom_size"]}})
 
     # Hair/Skin color boosting
     if search.get("hair_color"):
@@ -1280,6 +1331,20 @@ async def _fallback_search_suppliers(session: AsyncSession, search: dict) -> lis
             stmt = stmt.where(Supplier.height >= hr["gte"]) 
         if "lte" in hr:
             stmt = stmt.where(Supplier.height <= hr["lte"]) 
+    # top size range
+    if isinstance(search.get("top_size"), dict):
+        ts = search["top_size"]
+        if "gte" in ts:
+            stmt = stmt.where(Supplier.top_size >= ts["gte"]) 
+        if "lte" in ts:
+            stmt = stmt.where(Supplier.top_size <= ts["lte"]) 
+    # bottom size range
+    if isinstance(search.get("bottom_size"), dict):
+        bs = search["bottom_size"]
+        if "gte" in bs:
+            stmt = stmt.where(Supplier.bottom_size >= bs["gte"]) 
+        if "lte" in bs:
+            stmt = stmt.where(Supplier.bottom_size <= bs["lte"]) 
     # city contains
     if search.get("city"):
         stmt = stmt.where(Supplier.city.ilike(f"%{search['city']}%"))

@@ -40,6 +40,22 @@ def validate_height_weight(value_str: str, is_height: bool = True) -> Optional[i
         pass
     return None
 
+def validate_clothing_size(value_str: str) -> Optional[int]:
+    """اعتبارسنجی سایز لباس به صورت عددی (مثلاً 34 تا 60)
+
+    حروفی مانند S/M/L/XL پشتیبانی نمی‌شود زیرا نوع داده عددی شده است.
+    """
+    try:
+        value = int(re.findall(r"\d+", value_str)[0]) if re.findall(r"\d+", value_str) else None
+        if value is None:
+            return None
+        # معقول برای سایزهای عددی لباس (اروپایی/ایرانی)
+        if 20 <= value <= 80:
+            return value
+    except Exception:
+        pass
+    return None
+
 def validate_price(price_str: str) -> Optional[int]:
     """اعتبارسنجی قیمت تکی (به هزار تومان)
 

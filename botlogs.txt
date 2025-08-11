@@ -1,376 +1,56 @@
-telegram_bot  | 2025-08-09 19:57:47,076 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/suppliers [status:200 duration:0.014s]
-telegram_bot  | 2025-08-09 19:57:47,077 - __main__ - INFO - Bot started successfully!
-telegram_bot  | 2025-08-09 19:57:47,077 - aiogram.dispatcher - INFO - Start polling
-telegram_bot  | 2025-08-09 19:57:47,179 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
-telegram_bot  | 2025-08-09 20:01:39,532 - aiogram.event - INFO - Update id=196127914 is handled. Duration 452 ms by bot id=7613774476
-telegram_bot  | 2025-08-09 20:01:41,135 - aiogram.event - INFO - Update id=196127913 is handled. Duration 5988 ms by bot id=7613774476
-telegram_bot  | 2025-08-09 20:01:41,148 - aiogram.event - INFO - Update id=196127915 is not handled. Duration 15 ms by bot id=7613774476
-telegram_bot  | 2025-08-09 20:01:41,149 - aiogram.event - ERROR - Cause exception while process update id=196127915 by bot id=7613774476
-telegram_bot  | ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column demanders.address does not exist
-telegram_bot  | [SQL: SELECT demanders.user_id AS demanders_user_id, demanders.id AS demanders_id, demanders.full_name AS demanders_full_name, demanders.company_name AS demanders_company_name, demanders.address AS demanders_address, demanders.gender AS demanders_gender, demanders.phone_number AS demanders_phone_number, demanders.instagram_id AS demanders_instagram_id, demanders.additional_notes AS demanders_additional_notes, demanders.created_at AS demanders_created_at, demanders.updated_at AS demanders_updated_at 
-telegram_bot  | FROM demanders 
-telegram_bot  | WHERE demanders.user_id IN ($1::INTEGER)]
-telegram_bot  | [parameters: (1,)]
-telegram_bot  | (Background on this error at: https://sqlalche.me/e/20/f405)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 522, in _prepare_and_execute
-telegram_bot  |     prepared_stmt, attributes = await adapt_connection._prepare(
-telegram_bot  |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 773, in _prepare
-telegram_bot  |     prepared_stmt = await self._connection.prepare(
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/asyncpg/connection.py", line 636, in prepare
-telegram_bot  |     return await self._prepare(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/asyncpg/connection.py", line 654, in _prepare
-telegram_bot  |     stmt = await self._get_statement(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/asyncpg/connection.py", line 433, in _get_statement
-telegram_bot  |     statement = await self._protocol.prepare(
-telegram_bot  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "asyncpg/protocol/protocol.pyx", line 166, in prepare
-telegram_bot  | asyncpg.exceptions.UndefinedColumnError: column demanders.address does not exist
-telegram_bot  | 
-telegram_bot  | The above exception was the direct cause of the following exception:
-telegram_bot  | 
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
-telegram_bot  |     self.dialect.do_execute(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 922, in do_execute
-telegram_bot  |     cursor.execute(statement, parameters)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 580, in execute
-telegram_bot  |     self._adapt_connection.await_(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 130, in await_only
-telegram_bot  |     return current.driver.switch(awaitable)  # type: ignore[no-any-return]
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 195, in greenlet_spawn
-telegram_bot  |     value = await result
-telegram_bot  |             ^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 558, in _prepare_and_execute
-telegram_bot  |     self._handle_exception(error)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 509, in _handle_exception
-telegram_bot  |     self._adapt_connection._handle_exception(error)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
-telegram_bot  |     raise translated_error from error
-telegram_bot  | sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column demanders.address does not exist
-telegram_bot  | 
-telegram_bot  | The above exception was the direct cause of the following exception:
-telegram_bot  | 
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 309, in _process_update
-telegram_bot  |     response = await self.feed_update(bot, update, **kwargs)
-telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 158, in feed_update
-telegram_bot  |     response = await self.update.wrap_outer_middleware(
-telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/middlewares/error.py", line 25, in __call__
-telegram_bot  |     return await handler(event, data)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 27, in __call__
-telegram_bot  |     return await handler(event, data)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/fsm/middleware.py", line 41, in __call__
-telegram_bot  |     return await handler(event, data)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
-telegram_bot  |     return await wrapped_inner(event, kwargs)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
-telegram_bot  |     return await wrapped()
-telegram_bot  |            ^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
-telegram_bot  |     return await self.propagate_event(update_type=update_type, event=event, **kwargs)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 128, in propagate_event
-telegram_bot  |     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 123, in _wrapped
-telegram_bot  |     return await self._propagate_event(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 156, in _propagate_event
-telegram_bot  |     response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
-telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 128, in propagate_event
-telegram_bot  |     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 123, in _wrapped
-telegram_bot  |     return await self._propagate_event(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 148, in _propagate_event
-telegram_bot  |     response = await observer.trigger(event, **kwargs)
-telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
-telegram_bot  |     return await wrapped_inner(event, kwargs)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/app/middlewares/database.py", line 18, in __call__
-telegram_bot  |     return await handler(event, data)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
-telegram_bot  |     return await wrapped()
-telegram_bot  |            ^^^^^^^^^^^^^^^
-telegram_bot  |   File "/app/handlers/start.py", line 92, in select_demander_role
-telegram_bot  |     result = await session.execute(stmt)
-telegram_bot  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-telegram_bot  |     result = await greenlet_spawn(
-telegram_bot  |              ^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 200, in greenlet_spawn
-telegram_bot  |     result = context.throw(*sys.exc_info())
-telegram_bot  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-telegram_bot  |     return self._execute_internal(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-telegram_bot  |     result: Result[Any] = compile_state_cls.orm_execute_statement(
-telegram_bot  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-telegram_bot  |     return cls.orm_setup_cursor_result(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-telegram_bot  |     return loading.instances(result, querycontext)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 259, in instances
-telegram_bot  |     _prebuffered = list(chunks(None))
-telegram_bot  |                    ^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 244, in chunks
-telegram_bot  |     post_load.invoke(context, path)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 1541, in invoke
-telegram_bot  |     loader(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/strategies.py", line 3206, in _load_for_path
-telegram_bot  |     self._load_via_parent(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/strategies.py", line 3282, in _load_via_parent
-telegram_bot  |     context.session.execute(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-telegram_bot  |     return self._execute_internal(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-telegram_bot  |     result: Result[Any] = compile_state_cls.orm_execute_statement(
-telegram_bot  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 293, in orm_execute_statement
-telegram_bot  |     result = conn.execute(
-telegram_bot  |              ^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
-telegram_bot  |     return meth(
-telegram_bot  |            ^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 517, in _execute_on_connection
-telegram_bot  |     return connection._execute_clauseelement(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1639, in _execute_clauseelement
-telegram_bot  |     ret = self._execute_context(
-telegram_bot  |           ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
-telegram_bot  |     return self._exec_single_context(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
-telegram_bot  |     self._handle_dbapi_exception(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2344, in _handle_dbapi_exception
-telegram_bot  |     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
-telegram_bot  |     self.dialect.do_execute(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 922, in do_execute
-telegram_bot  |     cursor.execute(statement, parameters)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 580, in execute
-telegram_bot  |     self._adapt_connection.await_(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 130, in await_only
-telegram_bot  |     return current.driver.switch(awaitable)  # type: ignore[no-any-return]
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 195, in greenlet_spawn
-telegram_bot  |     value = await result
-telegram_bot  |             ^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 558, in _prepare_and_execute
-telegram_bot  |     self._handle_exception(error)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 509, in _handle_exception
-telegram_bot  |     self._adapt_connection._handle_exception(error)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
-telegram_bot  |     raise translated_error from error
-telegram_bot  | sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column demanders.address does not exist
-telegram_bot  | [SQL: SELECT demanders.user_id AS demanders_user_id, demanders.id AS demanders_id, demanders.full_name AS demanders_full_name, demanders.company_name AS demanders_company_name, demanders.address AS demanders_address, demanders.gender AS demanders_gender, demanders.phone_number AS demanders_phone_number, demanders.instagram_id AS demanders_instagram_id, demanders.additional_notes AS demanders_additional_notes, demanders.created_at AS demanders_created_at, demanders.updated_at AS demanders_updated_at 
-telegram_bot  | FROM demanders 
-telegram_bot  | WHERE demanders.user_id IN ($1::INTEGER)]
-telegram_bot  | [parameters: (1,)]
-telegram_bot  | (Background on this error at: https://sqlalche.me/e/20/f405)
-telegram_bot  | 2025-08-09 20:03:27,013 - aiogram.event - INFO - Update id=196127916 is not handled. Duration 8 ms by bot id=7613774476
-telegram_bot  | 2025-08-09 20:03:27,013 - aiogram.event - ERROR - Cause exception while process update id=196127916 by bot id=7613774476
-telegram_bot  | ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column demanders.address does not exist
-telegram_bot  | [SQL: SELECT demanders.user_id AS demanders_user_id, demanders.id AS demanders_id, demanders.full_name AS demanders_full_name, demanders.company_name AS demanders_company_name, demanders.address AS demanders_address, demanders.gender AS demanders_gender, demanders.phone_number AS demanders_phone_number, demanders.instagram_id AS demanders_instagram_id, demanders.additional_notes AS demanders_additional_notes, demanders.created_at AS demanders_created_at, demanders.updated_at AS demanders_updated_at 
-telegram_bot  | FROM demanders 
-telegram_bot  | WHERE demanders.user_id IN ($1::INTEGER)]
-telegram_bot  | [parameters: (1,)]
-telegram_bot  | (Background on this error at: https://sqlalche.me/e/20/f405)
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 522, in _prepare_and_execute
-telegram_bot  |     prepared_stmt, attributes = await adapt_connection._prepare(
-telegram_bot  |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 773, in _prepare
-telegram_bot  |     prepared_stmt = await self._connection.prepare(
-telegram_bot  |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/asyncpg/connection.py", line 636, in prepare
-telegram_bot  |     return await self._prepare(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/asyncpg/connection.py", line 654, in _prepare
-telegram_bot  |     stmt = await self._get_statement(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/asyncpg/connection.py", line 433, in _get_statement
-telegram_bot  |     statement = await self._protocol.prepare(
-telegram_bot  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "asyncpg/protocol/protocol.pyx", line 166, in prepare
-telegram_bot  | asyncpg.exceptions.UndefinedColumnError: column demanders.address does not exist
-telegram_bot  | 
-telegram_bot  | The above exception was the direct cause of the following exception:
-telegram_bot  | 
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
-telegram_bot  |     self.dialect.do_execute(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 922, in do_execute
-telegram_bot  |     cursor.execute(statement, parameters)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 580, in execute
-telegram_bot  |     self._adapt_connection.await_(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 130, in await_only
-telegram_bot  |     return current.driver.switch(awaitable)  # type: ignore[no-any-return]
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 195, in greenlet_spawn
-telegram_bot  |     value = await result
-telegram_bot  |             ^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 558, in _prepare_and_execute
-telegram_bot  |     self._handle_exception(error)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 509, in _handle_exception
-telegram_bot  |     self._adapt_connection._handle_exception(error)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
-telegram_bot  |     raise translated_error from error
-telegram_bot  | sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column demanders.address does not exist
-telegram_bot  | 
-telegram_bot  | The above exception was the direct cause of the following exception:
-telegram_bot  | 
-telegram_bot  | Traceback (most recent call last):
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 309, in _process_update
-telegram_bot  |     response = await self.feed_update(bot, update, **kwargs)
-telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 158, in feed_update
-telegram_bot  |     response = await self.update.wrap_outer_middleware(
-telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/middlewares/error.py", line 25, in __call__
-telegram_bot  |     return await handler(event, data)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 27, in __call__
-telegram_bot  |     return await handler(event, data)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/fsm/middleware.py", line 41, in __call__
-telegram_bot  |     return await handler(event, data)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
-telegram_bot  |     return await wrapped_inner(event, kwargs)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
-telegram_bot  |     return await wrapped()
-telegram_bot  |            ^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
-telegram_bot  |     return await self.propagate_event(update_type=update_type, event=event, **kwargs)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 128, in propagate_event
-telegram_bot  |     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 123, in _wrapped
-telegram_bot  |     return await self._propagate_event(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 156, in _propagate_event
-telegram_bot  |     response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
-telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 128, in propagate_event
-telegram_bot  |     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 123, in _wrapped
-telegram_bot  |     return await self._propagate_event(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/router.py", line 148, in _propagate_event
-telegram_bot  |     response = await observer.trigger(event, **kwargs)
-telegram_bot  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
-telegram_bot  |     return await wrapped_inner(event, kwargs)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/app/middlewares/database.py", line 18, in __call__
-telegram_bot  |     return await handler(event, data)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
-telegram_bot  |     return await wrapped()
-telegram_bot  |            ^^^^^^^^^^^^^^^
-telegram_bot  |   File "/app/handlers/start.py", line 92, in select_demander_role
-telegram_bot  |     result = await session.execute(stmt)
-telegram_bot  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-telegram_bot  |     result = await greenlet_spawn(
-telegram_bot  |              ^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 200, in greenlet_spawn
-telegram_bot  |     result = context.throw(*sys.exc_info())
-telegram_bot  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-telegram_bot  |     return self._execute_internal(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-telegram_bot  |     result: Result[Any] = compile_state_cls.orm_execute_statement(
-telegram_bot  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-telegram_bot  |     return cls.orm_setup_cursor_result(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-telegram_bot  |     return loading.instances(result, querycontext)
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 259, in instances
-telegram_bot  |     _prebuffered = list(chunks(None))
-telegram_bot  |                    ^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 244, in chunks
-telegram_bot  |     post_load.invoke(context, path)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 1541, in invoke
-telegram_bot  |     loader(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/strategies.py", line 3206, in _load_for_path
-telegram_bot  |     self._load_via_parent(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/strategies.py", line 3282, in _load_via_parent
-telegram_bot  |     context.session.execute(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-telegram_bot  |     return self._execute_internal(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-telegram_bot  |     result: Result[Any] = compile_state_cls.orm_execute_statement(
-telegram_bot  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 293, in orm_execute_statement
-telegram_bot  |     result = conn.execute(
-telegram_bot  |              ^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
-telegram_bot  |     return meth(
-telegram_bot  |            ^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 517, in _execute_on_connection
-telegram_bot  |     return connection._execute_clauseelement(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1639, in _execute_clauseelement
-telegram_bot  |     ret = self._execute_context(
-telegram_bot  |           ^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
-telegram_bot  |     return self._exec_single_context(
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
-telegram_bot  |     self._handle_dbapi_exception(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2344, in _handle_dbapi_exception
-telegram_bot  |     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
-telegram_bot  |     self.dialect.do_execute(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 922, in do_execute
-telegram_bot  |     cursor.execute(statement, parameters)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 580, in execute
-telegram_bot  |     self._adapt_connection.await_(
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 130, in await_only
-telegram_bot  |     return current.driver.switch(awaitable)  # type: ignore[no-any-return]
-telegram_bot  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 195, in greenlet_spawn
-telegram_bot  |     value = await result
-telegram_bot  |             ^^^^^^^^^^^^
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 558, in _prepare_and_execute
-telegram_bot  |     self._handle_exception(error)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 509, in _handle_exception
-telegram_bot  |     self._adapt_connection._handle_exception(error)
-telegram_bot  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
-telegram_bot  |     raise translated_error from error
-telegram_bot  | sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column demanders.address does not exist
-telegram_bot  | [SQL: SELECT demanders.user_id AS demanders_user_id, demanders.id AS demanders_id, demanders.full_name AS demanders_full_name, demanders.company_name AS demanders_company_name, demanders.address AS demanders_address, demanders.gender AS demanders_gender, demanders.phone_number AS demanders_phone_number, demanders.instagram_id AS demanders_instagram_id, demanders.additional_notes AS demanders_additional_notes, demanders.created_at AS demanders_created_at, demanders.updated_at AS demanders_updated_at 
-telegram_bot  | FROM demanders 
-telegram_bot  | WHERE demanders.user_id IN ($1::INTEGER)]
-telegram_bot  | [parameters: (1,)]
-telegram_bot  | (Background on this error at: https://sqlalche.me/e/20/f405)
+telegram_bot  | 2025-08-11 16:37:26,292 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/suppliers [status:404 duration:0.007s]
+telegram_bot  | 2025-08-11 16:37:26,419 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/suppliers [status:200 duration:0.127s]
+telegram_bot  | 2025-08-11 16:37:26,419 - __main__ - INFO - Bot started successfully!
+telegram_bot  | 2025-08-11 16:37:26,419 - aiogram.dispatcher - INFO - Start polling
+telegram_bot  | 2025-08-11 16:37:27,089 - aiogram.dispatcher - INFO - Run polling for bot @tessssssttttttttmmmmmmeeee_bot id=7613774476 - 'tessssssttttttttmmmmmmeeeeeeeee'
+telegram_bot  | 2025-08-11 16:37:36,863 - aiogram.event - INFO - Update id=196128496 is handled. Duration 699 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:37:39,147 - aiogram.event - INFO - Update id=196128497 is handled. Duration 203 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:37:44,602 - aiogram.event - INFO - Update id=196128498 is handled. Duration 207 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:37:46,094 - aiogram.event - INFO - Update id=196128499 is handled. Duration 204 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:37:50,559 - aiogram.event - INFO - Update id=196128500 is handled. Duration 221 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:37:54,710 - aiogram.event - INFO - Update id=196128501 is handled. Duration 169 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:37:57,088 - aiogram.event - INFO - Update id=196128502 is handled. Duration 142 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:04,237 - aiogram.event - INFO - Update id=196128503 is handled. Duration 225 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:18,868 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+telegram_bot  | 2025-08-11 16:38:18,868 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 7613774476)
+telegram_bot  | 2025-08-11 16:38:20,321 - aiogram.dispatcher - INFO - Connection established (tryings = 1, bot id = 7613774476)
+telegram_bot  | 2025-08-11 16:38:20,961 - aiogram.event - INFO - Update id=196128504 is handled. Duration 639 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:20,989 - aiogram.event - INFO - Update id=196128505 is handled. Duration 667 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:22,461 - aiogram.event - INFO - Update id=196128506 is handled. Duration 218 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:24,969 - aiogram.event - INFO - Update id=196128507 is handled. Duration 155 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:27,166 - aiogram.event - INFO - Update id=196128508 is handled. Duration 202 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:29,627 - aiogram.event - INFO - Update id=196128509 is handled. Duration 418 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:31,909 - aiogram.event - INFO - Update id=196128510 is handled. Duration 142 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:41,962 - aiogram.event - INFO - Update id=196128511 is handled. Duration 284 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:44,915 - aiogram.event - INFO - Update id=196128512 is handled. Duration 155 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:48,749 - aiogram.event - INFO - Update id=196128513 is handled. Duration 689 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:51,698 - aiogram.event - INFO - Update id=196128514 is handled. Duration 151 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:58,069 - aiogram.event - INFO - Update id=196128515 is handled. Duration 175 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:38:59,642 - aiogram.event - INFO - Update id=196128516 is handled. Duration 158 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:00,054 - aiogram.event - INFO - Update id=196128517 is handled. Duration 170 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:01,306 - aiogram.event - INFO - Update id=196128518 is handled. Duration 139 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:02,727 - aiogram.event - INFO - Update id=196128519 is handled. Duration 412 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:04,173 - aiogram.event - INFO - Update id=196128520 is handled. Duration 366 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:04,743 - aiogram.event - INFO - Update id=196128521 is handled. Duration 287 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:06,974 - aiogram.event - INFO - Update id=196128522 is handled. Duration 372 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:09,541 - aiogram.event - INFO - Update id=196128523 is handled. Duration 199 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:12,066 - aiogram.event - INFO - Update id=196128524 is handled. Duration 143 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:14,838 - aiogram.event - INFO - Update id=196128525 is handled. Duration 159 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:16,235 - aiogram.event - INFO - Update id=196128526 is handled. Duration 159 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:17,524 - aiogram.event - INFO - Update id=196128527 is handled. Duration 273 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:18,650 - aiogram.event - INFO - Update id=196128528 is handled. Duration 284 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:20,171 - aiogram.event - INFO - Update id=196128529 is handled. Duration 148 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:22,672 - aiogram.event - INFO - Update id=196128530 is handled. Duration 312 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:29,349 - aiogram.event - INFO - Update id=196128531 is handled. Duration 207 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:32,859 - aiogram.event - INFO - Update id=196128532 is handled. Duration 425 ms by bot id=7613774476
+telegram_bot  | 2025-08-11 16:39:59,903 - root - INFO - Cleaned pricing data structure:
+telegram_bot  | 2025-08-11 16:39:59,903 - root - INFO - {
+telegram_bot  |   "hourly": 300,
+telegram_bot  |   "per_cloth": 20,
+telegram_bot  |   "category_based": {
+telegram_bot  |     "fashion": 30,
+telegram_bot  |     "religious": 20
+telegram_bot  |   }
+telegram_bot  | }
+telegram_bot  | 2025-08-11 16:39:59,997 - elastic_transport.transport - INFO - POST http://elasticsearch:9200/suppliers/_update_by_query?refresh=false [status:200 duration:0.054s]
+telegram_bot  | 2025-08-11 16:40:00,031 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/suppliers/_doc/1?refresh=false [status:201 duration:0.084s]

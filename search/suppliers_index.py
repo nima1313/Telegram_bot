@@ -213,8 +213,8 @@ async def ensure_suppliers_index() -> None:
                     "hair_color": {"type": "keyword", "normalizer": "persian_keyword_normalizer"},
                     "eye_color": {"type": "keyword", "normalizer": "persian_keyword_normalizer"},
                     "skin_color": {"type": "keyword", "normalizer": "persian_keyword_normalizer"},
-                    "top_size": {"type": "keyword"},
-                    "bottom_size": {"type": "keyword"},
+                    "top_size": {"type": "integer"},
+                    "bottom_size": {"type": "integer"},
                     "special_features": {
                         "type": "text",
                         "analyzer": "persian_index_analyzer",

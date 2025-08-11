@@ -30,10 +30,21 @@ def format_pricing_data(pricing_data: dict) -> str:
     category_prices = pricing_data.get("category_based")
     if isinstance(category_prices, dict) and category_prices:
         formatted_lines.append("قیمت‌گذاری بر اساس سبک:")
+        style_names_fa = {
+            "fashion": "فشن/کت وات",
+            "advertising": "تبلیغاتی / برندینگ",
+            "religious": "مذهبی / پوشیده",
+            "children": "کودک",
+            "sports": "ورزشی",
+            "artistic": "هنری / خاص",
+            "outdoor": "فضای باز",
+            "studio": "استودیویی",
+        }
         for style, price in category_prices.items():
             if isinstance(price, (int, float)):
                 amount = int(price) * 1000
-                formatted_lines.append(f"  - سبک {style}: {amount:,.0f} تومان")
+                style_fa = style_names_fa.get(style, style)
+                formatted_lines.append(f"  - سبک {style_fa}: {amount:,.0f} تومان")
     
     return "\n".join(formatted_lines) if formatted_lines else "توافقی"
 
@@ -44,7 +55,7 @@ from states.supplier import (
 )
 from keyboards.reply import *
 from keyboards.inline import get_request_action_keyboard, get_supplier_requests_keyboard
-from utils.validators import validate_phone_number, validate_age, validate_height_weight, validate_price
+from utils.validators import validate_phone_number, validate_age, validate_height_weight, validate_price, validate_clothing_size
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from sqlalchemy.orm import selectinload
 from search.suppliers_index import update_supplier_document
@@ -484,7 +495,7 @@ async def process_skin_color(message: Message, state: FSMContext):
         return
     
     await state.update_data(skin_color=message.text)
-    await message.answer("🔸 سایز لباس بالاتنه خود را وارد کنید (مثال: M یا 38):")
+    await message.answer("🔸 سایز لباس بالاتنه خود را به عدد وارد کنید (مثال: 38):")
     await state.set_state(SupplierRegistration.top_size)
 
 @router.message(SupplierRegistration.top_size)
@@ -495,8 +506,12 @@ async def process_top_size(message: Message, state: FSMContext):
         await message.answer("🔸 رنگ پوست خود را وارد کنید:")
         return
     
-    await state.update_data(top_size=message.text)
-    await message.answer("🔸 سایز لباس پایین‌تنه خود را وارد کنید:")
+    size_value = validate_clothing_size(message.text)
+    if size_value is None:
+        await message.answer("❌ لطفاً سایز بالاتنه را به صورت عدد معتبر وارد کنید (مثال: 38)")
+        return
+    await state.update_data(top_size=size_value)
+    await message.answer("🔸 سایز لباس پایین‌تنه خود را به عدد وارد کنید:")
     await state.set_state(SupplierRegistration.bottom_size)
 
 @router.message(SupplierRegistration.bottom_size)
@@ -507,7 +522,11 @@ async def process_bottom_size(message: Message, state: FSMContext):
         await message.answer("🔸 سایز لباس بالاتنه خود را وارد کنید:")
         return
     
-    await state.update_data(bottom_size=message.text)
+    size_value = validate_clothing_size(message.text)
+    if size_value is None:
+        await message.answer("❌ لطفاً سایز پایین‌تنه را به صورت عدد معتبر وارد کنید (مثال: 40)")
+        return
+    await state.update_data(bottom_size=size_value)
     await message.answer(
         "🔸 ویژگی خاص ظاهری (تتو، خال، ریش و...) - اختیاری:\n"
         "برای رد کردن روی دکمه 'رد کردن' کلیک کنید.",
@@ -1195,10 +1214,10 @@ async def registration_choose_field_to_edit(message: Message, state: FSMContext)
         await message.answer("🔸 رنگ پوست جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
         await state.set_state(SupplierRegistration.skin_color)
     elif field_to_edit == "top_size":
-        await message.answer("🔸 سایز بالاتنه جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await message.answer("🔸 سایز بالاتنه جدید خود را به عدد وارد کنید:", reply_markup=get_back_keyboard())
         await state.set_state(SupplierRegistration.top_size)
     elif field_to_edit == "bottom_size":
-        await message.answer("🔸 سایز پایین‌تنه جدید خود را وارد کنید:", reply_markup=get_back_keyboard())
+        await message.answer("🔸 سایز پایین‌تنه جدید خود را به عدد وارد کنید:", reply_markup=get_back_keyboard())
         await state.set_state(SupplierRegistration.bottom_size)
     elif field_to_edit == "special_features":
         await message.answer("🔸 ویژگی‌های خاص جدید خود را وارد کنید:", reply_markup=get_skip_keyboard())
@@ -1471,6 +1490,12 @@ async def edit_profile_enter_value(message: Message, state: FSMContext, session:
             await message.answer("سن نامعتبر است. لطفاً عدد بین ۱۵ تا ۸۰ وارد کنید.")
             return
         new_value = age
+    elif field_to_edit in ('top_size', 'bottom_size'):
+        size_value = validate_clothing_size(new_value)
+        if size_value is None:
+            await message.answer("❌ لطفاً سایز را به صورت عدد معتبر وارد کنید (مثال: 38)")
+            return
+        new_value = size_value
     elif field_to_edit == 'phone_number':
         phone = validate_phone_number(new_value)
         if not phone:
@@ -2165,17 +2190,20 @@ def create_supplier_profile_text(supplier: Supplier) -> str:
 
 👤 {supplier.full_name}
 📱 {supplier.phone_number}
-📍 {supplier.city} - {supplier.area}
+📍 شهر: {supplier.city or '-'} | محدوده: {supplier.area or '-'}
 
 💰 قیمت: {format_price_range(supplier)}
-🤝 نوع همکاری: {', '.join([coop_types_fa.get(t, t) for t in supplier.cooperation_types])}
-🎨 سبک: {', '.join([work_styles_fa.get(s, s) for s in supplier.work_styles])}
+🤝 نوع همکاری: {', '.join([coop_types_fa.get(t, t) for t in (supplier.cooperation_types or [])])}
+🎨 سبک: {', '.join([work_styles_fa.get(s, s) for s in (supplier.work_styles or [])])}
 
 📊 مشخصات:
 - {supplier.gender} - {supplier.age} ساله
 - قد: {supplier.height} سانتی‌متر | وزن: {supplier.weight} کیلوگرم
 - موی {supplier.hair_color} | چشم {supplier.eye_color}
 """
+
+    # افزودن سایزها با توضیح
+    profile += f"\n- سایز بالاتنه: {supplier.top_size if supplier.top_size is not None else '-'} | سایز پایین‌تنه: {supplier.bottom_size if supplier.bottom_size is not None else '-'}"
     
     if supplier.instagram_id:
         profile += f"\n📷 @{supplier.instagram_id}"
