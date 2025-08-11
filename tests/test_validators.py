@@ -65,7 +65,9 @@ class TestValidators:
         assert parse_age_range("18-30") == (18, 30)
         assert parse_age_range("25 - 35") == (25, 35)
         assert parse_age_range("20-40") == (20, 40)
-        
-        assert parse_age_range("30-18") is None
+        # reversed input should be normalized
+        assert parse_age_range("30-18") == (18, 30)
+        # support other separators and text noise
+        assert parse_age_range("سن: 22 تا 28 سال") == (22, 28)
         assert parse_age_range("18") is None
         assert parse_age_range("abc-def") is None

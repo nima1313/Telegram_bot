@@ -82,14 +82,15 @@ def validate_username(username: str) -> bool:
 def parse_age_range(age_range_str: str) -> Optional[tuple]:
     """پارس کردن محدوده سنی"""
     try:
-        if '-' in age_range_str:
-            parts = age_range_str.split('-')
-            if len(parts) == 2:
-                min_age = int(parts[0].strip())
-                max_age = int(parts[1].strip())
-                if 0 < min_age < max_age <= 100:
-                    return (min_age, max_age)
-    except:
+        # Extract first two numbers regardless of separator and normalize order
+        nums = [int(x) for x in re.findall(r"\d+", age_range_str)]
+        if len(nums) < 2:
+            return None
+        a, b = nums[0], nums[1]
+        lo, hi = (a, b) if a <= b else (b, a)
+        if 0 < lo <= hi <= 100:
+            return (lo, hi)
+    except Exception:
         pass
     return None
 

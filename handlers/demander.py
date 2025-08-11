@@ -447,7 +447,10 @@ def _parse_min_max(text: str) -> tuple | None:
         return None
     if len(nums) == 1:
         return (None, nums[0])
-    return (nums[0], nums[1])
+    a, b = nums[0], nums[1]
+    # Normalize order so that inputs like "50-30" become (30, 50)
+    lo, hi = (a, b) if a <= b else (b, a)
+    return (lo, hi)
 
 
 @router.message(F.text == "🔍 جست‌جوی تأمین‌کننده", DemanderMenu.main_menu)

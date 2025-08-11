@@ -1164,10 +1164,15 @@ async def process_confirmation(message: Message, state: FSMContext, session: Asy
         except Exception as e:
             logging.exception("Error during supplier registration confirmation:")
             await message.answer(
-                "❌ خطایی در ثبت اطلاعات رخ داد. لطفاً مجدداً تلاش کنید.",
+                "❌ خطایی در ثبت اطلاعات رخ داد. بازگشت به شروع...",
                 reply_markup=ReplyKeyboardRemove()
             )
             await state.clear()
+            try:
+                from handlers.start import cmd_start
+                await cmd_start(message, state, session)
+            except Exception:
+                logging.exception("Failed to redirect to /start after error")
 
 # ========== Handlers for Editing During Registration ==========
 
