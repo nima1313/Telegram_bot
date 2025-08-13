@@ -453,6 +453,55 @@ def _parse_min_max(text: str) -> tuple | None:
     return (lo, hi)
 
 
+def _parse_notes_for_search(notes: str) -> list[str]:
+    """
+    Parse notes in format 'xxx - yyyy - zzzz ...' and return array of search terms.
+    Each term is stripped of whitespace and empty terms are filtered out.
+    """
+    if not notes or not notes.strip():
+        return []
+    
+    # Split by '-' and clean up each term
+    terms = []
+    for term in notes.split('-'):
+        cleaned_term = term.strip()
+        if cleaned_term:  # Only add non-empty terms
+            terms.append(cleaned_term)
+    
+    return terms
+
+
+def _validate_notes_input(notes: str) -> tuple[bool, str]:
+    """
+    Validate notes input for search functionality.
+    
+    Returns:
+        tuple[bool, str]: (is_valid, error_message)
+    """
+    if not notes or not notes.strip():
+        return True, ""  # Empty is valid (optional field)
+    
+    # Check length (reasonable limit)
+    if len(notes) > 500:
+        return False, "توضیحات خیلی طولانی است. حداکثر ۵۰۰ کاراکتر مجاز است."
+    
+    # Parse terms to validate
+    terms = _parse_notes_for_search(notes)
+    
+    # Check if we have too many terms
+    if len(terms) > 10:
+        return False, "تعداد عبارات جستجو زیاد است. حداکثر ۱۰ عبارت مجاز است."
+    
+    # Check each term length
+    for term in terms:
+        if len(term) > 50:
+            return False, f"عبارت '{term}' خیلی طولانی است. حداکثر ۵۰ کاراکتر برای هر عبارت."
+        if len(term) < 2:
+            return False, f"عبارت '{term}' خیلی کوتاه است. حداقل ۲ کاراکتر برای هر عبارت."
+    
+    return True, ""
+
+
 @router.message(F.text == "🔍 جست‌جوی تأمین‌کننده", DemanderMenu.main_menu)
 async def start_advanced_search(message: Message, state: FSMContext):
     await state.update_data(
@@ -850,7 +899,16 @@ async def enter_skin_color(message: Message, state: FSMContext):
     data = await state.get_data()
     search = data.get("search", {})
     await state.update_data(search={**search, "skin_color": skin})
-    await message.answer("توضیحات اضافی (اختیاری) را وارد کنید یا 'مهم نیست'.")
+    await message.answer(
+        "🔍 **عبارات جستجو** (اختیاری) را وارد کنید:\n\n"
+        "💡 **راهنما:**\n"
+        "• برای جستجوی دقیق‌تر، عبارات را با خط تیره جدا کنید\n"
+        "• مثال: `بلند - موی بور - خوشگل`\n"
+        "• مثال: `مدل فشن - تجربه تبلیغات - استایل مدرن`\n\n"
+        "📝 عبارات شما بر اساس اولویت جستجو می‌شوند\n\n"
+        "⏭ یا 'مهم نیست' را بزنید تا این مرحله را رد کنید",
+        parse_mode="Markdown"
+    )
     await state.set_state(DemanderSearch.notes)
 
 
@@ -861,7 +919,32 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
         await state.set_state(DemanderSearch.skin_color)
         return
 
-    notes = None if message.text == "🤷 مهم نیست" else message.text.strip()
+    # Handle skip option
+    if message.text == "🤷 مهم نیست":
+        notes = None
+    else:
+        # Validate input
+        is_valid, error_msg = _validate_notes_input(message.text)
+        if not is_valid:
+            await message.answer(
+                f"❌ **خطا در ورودی:**\n{error_msg}\n\n"
+                "لطفاً دوباره تلاش کنید یا 'مهم نیست' را بزنید.",
+                parse_mode="Markdown",
+                reply_markup=get_doesnt_matter_keyboard()
+            )
+            return
+        
+        notes = message.text.strip()
+        
+        # Show parsed terms to user for confirmation
+        parsed_terms = _parse_notes_for_search(notes)
+        if len(parsed_terms) > 1:
+            terms_text = "، ".join(f"`{term}`" for term in parsed_terms)
+            await message.answer(
+                f"✅ **عبارات جستجوی شما:**\n{terms_text}\n\n🔍 در حال جستجو...",
+                parse_mode="Markdown"
+            )
+    
     data = await state.get_data()
     search = data.get("search", {})
     search = {**search, "notes": notes}
@@ -944,7 +1027,23 @@ async def enter_notes_and_search(message: Message, state: FSMContext, session: A
     # Notes boosting through search_text
     query = None
     if search.get("notes"):
-        query = search["notes"]
+        # Parse notes in format "xxx - yyyy - zzzz ..." and apply fuzzy search on each term
+        parsed_notes = _parse_notes_for_search(search["notes"])
+        if parsed_notes:
+            # Use the first term as main query and boost others through should clauses
+            query = parsed_notes[0]
+            # Add additional note terms as should clauses for prioritization
+            for note_term in parsed_notes[1:]:
+                should.append({
+                    "match": {
+                        "search_text": {
+                            "query": note_term,
+                            "fuzziness": "AUTO",
+                            "boost": 1.5,
+                            "analyzer": "persian_search_analyzer"
+                        }
+                    }
+                })
 
     # Execute ES search with robust error handling
     from search.suppliers_index import search_suppliers as es_search
